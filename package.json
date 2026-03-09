@@ -1,0 +1,15 @@
+{
+  "name": "khammerson_app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "back": "pnpm --filter server",
+    "front": "pnpm --filter web",
+    "dev": "pnpm run --parallel dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0"
+}
