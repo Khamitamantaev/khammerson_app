@@ -1,0 +1,71 @@
+# Зависимости
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Сборки и кеш
+dist
+build
+.cache
+.turbo
+.next
+out
+
+# Логи
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Окружение
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Тесты
+coverage
+.nyc_output
+jest.config.js
+vitest.config.js
+test-results
+
+# Временные файлы
+tmp
+temp
+*.tmp
+*.temp
+
+# Документация
+README.md
+LICENSE
+*.md
+docs
+
+# Проектные файлы
+.prettierrc
+.eslintrc
+.stylelintrc
+*.config.js
+*.config.ts
+tsconfig*.json
