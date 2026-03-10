@@ -23,7 +23,7 @@ services:
   server:
     build:
       context: .
-      dockerfile: apps/server/Dockerfile
+      dockerfile: apps/server/Dockerfile.dev
     container_name: khammerson_server
     restart: unless-stopped
     ports:
