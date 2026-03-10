@@ -19,7 +19,7 @@ task default
 ```
 ## Task default выдаст стандартные команды для запуска, среди которых:
 
-## Запуск development app с watch и сборкой
+## Запуск development app с watch и сборкой(Здесь так же при помощи watch можно спокойно разрабатывать с hot-reload)
 
 ```js
 task dev_build
