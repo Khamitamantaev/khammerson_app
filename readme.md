@@ -46,6 +46,11 @@ task prod
 task default
 ```
 
+## Trpc-playground, примеры запросов
+```js
+await trpc.users.getAll.query()
+```
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)

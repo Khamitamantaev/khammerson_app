@@ -16,6 +16,10 @@ export default defineConfig([
       reactRefresh.configs.vite,
     ],
     languageOptions: {
+      parseOptions:{
+        project: ['./tsconfig.json', './apps/server/tsconfig.json', './apps/web/tsconfig.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
       ecmaVersion: 2020,
       globals: globals.browser,
     },

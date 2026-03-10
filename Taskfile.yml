@@ -17,6 +17,18 @@ tasks:
     cmds:
       - echo "Запуск и создание development окружения в первый раз..."
       - docker-compose up --build --watch
+  
+  dev-rebuild-server:
+    desc: Пересоздание и запуск development окружения server
+    cmds:
+      - echo "Запуск и создание development окружения server..."
+      - docker-compose up --build --watch server_dev
+
+  dev-rebuild-web:
+    desc: Пересоздание и запуск development окружения web
+    cmds:
+      - echo "Запуск и создание development окружения web..."
+      - docker-compose up --build --watch web_dev
 
   dev:
     desc: Запустить dev окружение с watch режимом

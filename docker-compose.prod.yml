@@ -26,8 +26,8 @@ services:
       target: production
     container_name: khammerson_server_prod
     restart: always
-    ports:
-      - "${PROD_SERVER_PORT}:4000"
+    env_file:
+      - apps/server/.env.production
     environment:
       NODE_ENV: production
       DB_HOST: postgres
@@ -35,6 +35,8 @@ services:
       POSTGRES_USER: ${PROD_POSTGRES_USER}
       POSTGRES_PASSWORD: ${PROD_POSTGRES_PASSWORD}
       POSTGRES_DB: ${PROD_POSTGRES_DB}
+    ports:
+      - "${PROD_SERVER_PORT}:4000"
     depends_on:
       postgres_prod:
         condition: service_healthy
