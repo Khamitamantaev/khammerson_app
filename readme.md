@@ -12,26 +12,37 @@ docker-compose up -d postgres
 pnpm run dev
 ```
 
-## Run app with docker first time
+Для удобства task/cli the package manager pnpm 
+```js
+pnpm i -g @go-task/cli
+task default
+```
+## Task default выдаст стандартные команды для запуска, среди которых:
+
+## Запуск development app с watch и сборкой
 
 ```js
-docker-compose up -d --build
+task dev_build
 ```
 
-## Run app with docker first time
+## Run development app
 
 ```js
-docker-compose up -d --build
-
-# 2. Запустить watch режим отдельно
-docker-compose watch
+task dev
 ```
 
-## Run app with docker later
+## Run production app со сборкой
+```js
+task prod_build
+```
+
+## Run production app
 
 ```js
-docker-compose up --watch
+task prod
 ```
+
+# Примеры команд для контейнеров, но они так же есть все в task
 
 ## ReBuild containers for development(if change configs etc.)
 
@@ -73,7 +84,10 @@ docker-compose -f docker-compose.prod.yml up -d --build
 ```js
 docker-compose -f docker-compose.prod.yml down
 ```
-
+## Все доступные команды можно увидеть в 
+```js
+task default
+```
 
 ## License
 

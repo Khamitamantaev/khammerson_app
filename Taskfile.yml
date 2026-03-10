@@ -1,0 +1,114 @@
+# https://taskfile.dev
+version: '3'
+
+vars:
+  DEV_COMPOSE: docker-compose.yml
+  PROD_COMPOSE: docker-compose.prod.yml
+  BLUE: '\033[36m'
+  GREEN: '\033[32m'
+  YELLOW: '\033[33m'
+  RESET: '\033[0m'
+
+tasks:
+  default:
+    desc: Показать список доступных команд
+    cmds:
+      - task --list-all
+
+  # === Запуск и dev и prod последовательно ===
+  run_dev_prod:
+    desc: Запустить и dev и prod окружения
+    cmds:
+      - task: dev
+      - task: prod
+
+  # === Development ===
+  dev_build:
+    desc: Запуск и создание development окружения в первый раз
+    cmds:
+      - echo "{{.YELLOW}}Запуск и создание development окружения в первый раз...{{.RESET}}"
+      - docker-compose up --build --watch
+
+  dev:
+    desc: Запустить dev окружение с watch режимом
+    cmds:
+      - echo "{{.YELLOW}}Запуск development окружения...{{.RESET}}"
+      - docker-compose up --watch
+
+  dev-down:
+    desc: Остановить dev окружение
+    cmds:
+      - echo "{{.YELLOW}}Остановка development окружения...{{.RESET}}"
+      - docker-compose down
+
+  dev-down-v:
+    desc: Остановить dev окружение и удалить volumes
+    cmds:
+      - echo "{{.YELLOW}}Остановка development окружения и удаление volumes...{{.RESET}}"
+      - docker-compose down -v
+
+  dev-logs:
+    desc: Посмотреть логи dev
+    cmds:
+      - docker-compose logs -f
+
+  # === Production ===
+  prod_build:
+    desc: Запуск и сборка production окружения
+    cmds:
+      - echo "{{.YELLOW}}Запуск и сборка production окружения...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} up -d --build
+
+  prod:
+    desc: Запустить prod окружение в фоне
+    cmds:
+      - echo "{{.YELLOW}}Запуск production окружения...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} up -d
+
+  prod-down:
+    desc: Остановить prod окружение
+    cmds:
+      - echo "{{.YELLOW}}Остановка production окружения...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} down
+
+  prod-down-v:
+    desc: Остановить prod окружение и удалить volumes
+    cmds:
+      - echo "{{.YELLOW}}Остановка production окружения и удаление volumes...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} down -v
+
+  prod-logs:
+    desc: Посмотреть логи prod
+    cmds:
+      - docker-compose -f {{.PROD_COMPOSE}} logs -f
+
+  prod-rebuild:
+    desc: Пересобрать и запустить prod заново
+    cmds:
+      - echo "{{.YELLOW}}Пересборка production окружения...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} down
+      - docker-compose -f {{.PROD_COMPOSE}} build
+      - docker-compose -f {{.PROD_COMPOSE}} up -d
+
+  prod-rebuild-web:
+    desc: Пересобрать только web (prod)
+    cmds:
+      - echo "{{.YELLOW}}Пересборка web (production)...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} build web
+      - docker-compose -f {{.PROD_COMPOSE}} up -d --no-deps web
+
+  prod-rebuild-server:
+    desc: Пересобрать только server (prod)
+    cmds:
+      - echo "{{.YELLOW}}Пересборка server (production)...{{.RESET}}"
+      - docker-compose -f {{.PROD_COMPOSE}} build server
+      - docker-compose -f {{.PROD_COMPOSE}} up -d --no-deps server
+
+  # === Очистка ===
+  clean:
+    desc: Остановить всё и удалить volumes (осторожно!)
+    cmds:
+      - echo "{{.YELLOW}}Остановка всех контейнеров и удаление volumes...{{.RESET}}"
+      - docker-compose down -v
+      - docker-compose -f {{.PROD_COMPOSE}} down -v
+      - echo "{{.GREEN}}Готово!{{.RESET}}"
