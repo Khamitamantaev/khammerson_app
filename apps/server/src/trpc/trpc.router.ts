@@ -6,6 +6,7 @@ import { UsersRouter } from './routers/user.router';
 import { AuthRouter } from './routers/auth.router';
 import { createContext } from './context/trpc.context';
 import { expressHandler } from 'trpc-playground/handlers/express';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class TrpcRouter {
@@ -17,6 +18,7 @@ export class TrpcRouter {
     private readonly trpcService: TrpcService,
     private readonly usersRouter: UsersRouter,
     private readonly authRouter: AuthRouter,
+    private readonly configService: ConfigService,
   ) {
     this.appRouter = this.trpcService.router({
       users: this.usersRouter.router,
@@ -33,18 +35,22 @@ export class TrpcRouter {
       }),
     );
 
-    // Добавляем playground
-    app.use(
-      '/trpc-playground',
-      await expressHandler({
-        trpcApiEndpoint: '/trpc',
-        playgroundEndpoint: '/trpc-playground',
-        router: this.appRouter,
-        request: {
-          superjson: true,
-        },
-      }),
-    );
+    // Добавляем playground только если включено в конфиге
+    const enablePlayground = this.configService.get('trpc.playground');
+    if (enablePlayground) {
+      app.use(
+        '/trpc-playground',
+        await expressHandler({
+          trpcApiEndpoint: '/trpc',
+          playgroundEndpoint: '/trpc-playground',
+          router: this.appRouter,
+          request: {
+            superjson: true,
+          },
+        }),
+      );
+      this.logger.log('tRPC Playground enabled at /trpc-playground');
+    }
   }
 }
 
