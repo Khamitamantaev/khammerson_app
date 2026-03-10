@@ -24,6 +24,23 @@ docker-compose up -d --build
 docker-compose up -d 
 ```
 
+## ReBuild server container(if change configs etc.)
+
+```js
+docker-compose down server
+docker-compose -rm -f server
+docker-compose up -d --build server
+```
+
+
+## ReBuild web container(if change configs etc.)
+
+```js
+docker-compose down web
+docker-compose -rm -f web
+docker-compose up -d --build web
+```
+
 ## License
 
 [MIT](https://choosealicense.com/licenses/mit/)
