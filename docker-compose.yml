@@ -1,40 +1,40 @@
 services:
-  postgres:
+  postgres_dev:
     image: postgres:18-alpine3.23
-    container_name: khammerson_postgres
+    container_name: khammerson_postgres_dev
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${DEV_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DEV_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DEV_POSTGRES_DB}
+      POSTGRES_PORT: ${DEV_POSTGRES_PORT}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${DEV_POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - khammerson_network
+      - khammerson_dev_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${DEV_POSTGRES_USER} -d $${DEV_POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  server:
+  server_dev:
     build:
       context: .
       dockerfile: apps/server/Dockerfile.dev
-    container_name: khammerson_server
+    container_name: khammerson_server_dev
     restart: unless-stopped
     ports:
-      - "${SERVER_PORT}:4000"
+      - "${DEV_SERVER_PORT}:4000"
     environment:
       NODE_ENV: development
       DB_HOST: postgres
-      POSTGRES_PORT: ${POSTGRES_PORT}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${DEV_POSTGRES_PORT}
+      POSTGRES_USER: ${DEV_POSTGRES_USER}
+      POSTGRES_PASSWORD: ${DEV_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DEV_POSTGRES_DB}
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "1000"
     develop:
@@ -65,26 +65,24 @@ services:
           path: ./apps/server/pnpm-lock.yaml
     working_dir: /app/apps/server
     depends_on:
-      postgres:
+      postgres_dev:
         condition: service_healthy
     networks:
-      - khammerson_network
+      - khammerson_dev_network
     command: nest start --watch
 
-  web:
+  web_dev:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
-    container_name: khammerson_web
+      dockerfile: apps/web/Dockerfile.dev
+    container_name: khammerson_web_dev
     restart: unless-stopped
-    ports:
-      - "${WEB_PORT}:3006"
     environment:
       NODE_ENV: development
-      VITE_HOST: 0.0.0.0
-      VITE_PORT: 3006
       CHOKIDAR_USEPOLLING: "true"
       CHOKIDAR_INTERVAL: "1000"
+    ports:
+      - "${DEV_WEB_PORT}:3006"
     develop:
       watch:
         # Синхронизируем исходный код для HMR
@@ -113,9 +111,9 @@ services:
           path: ./apps/web/pnpm-lock.yaml
     working_dir: /app/apps/web
     depends_on:
-      - server
+      - server_dev
     networks:
-      - khammerson_network
+      - khammerson_dev_network
     command: pnpm run dev
 
 volumes:
@@ -123,5 +121,5 @@ volumes:
     name: khammerson_postgres_data
 
 networks:
-  khammerson_network:
+  khammerson_dev_network:
     driver: bridge

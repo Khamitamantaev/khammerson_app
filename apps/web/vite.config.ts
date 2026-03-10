@@ -1,54 +1,82 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import { resolve } from 'path'
-import tailwindcss from '@tailwindcss/vite'
+import { defineConfig, loadEnv } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { resolve } from "path";
 
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+// https://vite.dev/config/
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
   
-  base: '/',
+  const isProd = mode === 'production';
   
-  server: {
-    host: true,
-    port: 3006,
-    watch: {
-      usePolling: true,
-      interval: 100
-    }
-  },
-  
-  build: {
-    target: 'es2020',
-    outDir: 'dist',
-    sourcemap: false,
-    minify: 'esbuild',
-    chunkSizeWarningLimit: 1000,
+  return {
+    plugins: [react(), tailwindcss()],
     
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'index.html'),
+    // Базовый путь
+    base: '/',
+    
+    server: {
+      host: true, // или '0.0.0.0'
+      port: parseInt(env.VITE_PORT) || 3006,
+      strictPort: true,
+      watch: {
+        usePolling: true,
+        interval: 100,
       },
-      output: {
-        // Убираем несуществующие пакеты из manualChunks
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
+      hmr: {
+        clientPort: 3006,
+        protocol: "ws",
+        host: "localhost",
+      },
+      allowedHosts: true,
+      // Только для dev режима
+      fs: isProd ? undefined : {
+        strict: false,
+        allow: ['..']
+      }
+    },
+    
+    preview: {
+      port: parseInt(env.VITE_PORT) || 3006,
+      host: true,
+    },
+    
+    // Настройки сборки для production
+    build: {
+      target: 'es2020',
+      outDir: 'dist',
+      sourcemap: isProd ? false : true, // sourcemap только в dev
+      minify: 'esbuild',
+      chunkSizeWarningLimit: 1000,
+      
+      rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
         },
-        chunkFileNames: 'assets/js/[name]-[hash].js',
-        entryFileNames: 'assets/js/[name]-[hash].js',
-        assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+        output: {
+          // Разделение кода на чанки
+          manualChunks: {
+            vendor: ['react', 'react-dom'],
+          },
+          chunkFileNames: 'assets/js/[name]-[hash].js',
+          entryFileNames: 'assets/js/[name]-[hash].js',
+          assetFileNames: 'assets/[ext]/[name]-[hash].[ext]',
+        },
+      },
+      
+      commonjsOptions: {
+        transformMixedEsModules: true,
       },
     },
     
-    commonjsOptions: {
-      transformMixedEsModules: true,
+    // Оптимизация зависимостей
+    optimizeDeps: {
+      include: ['react', 'react-dom'],
     },
-  },
-  
-  optimizeDeps: {
-    include: ['react', 'react-dom'],
-  },
-  
-  define: {
-    'process.env.NODE_ENV': '"production"',
-  },
-})
+    
+    // Определение переменных окружения для сборки
+    define: {
+      'process.env.NODE_ENV': JSON.stringify(mode),
+    },
+  };
+});
