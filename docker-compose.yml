@@ -35,13 +35,34 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      # Монтируем только исходники для hot-reload
-      - ./apps/server/src:/app/apps/server/src
-      - ./apps/server/test:/app/apps/server/test
-      # Защищаем node_modules от перезаписи
-      - /app/node_modules
-      - /app/apps/server/node_modules
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+    develop:
+      watch:
+        # Синхронизируем исходный код для hot-reload
+        - action: sync
+          path: ./apps/server/src
+          target: /app/apps/server/src
+          ignore:
+            - node_modules/
+            - dist/
+            - "*.log"
+        - action: sync
+          path: ./apps/server/test
+          target: /app/apps/server/test
+          ignore:
+            - node_modules/
+        - action: sync
+          path: ./apps/server/tsconfig.json
+          target: /app/apps/server/tsconfig.json
+        - action: sync
+          path: ./apps/server/nest-cli.json
+          target: /app/apps/server/nest-cli.json
+        # Пересобираем при изменении зависимостей
+        - action: rebuild
+          path: ./apps/server/package.json
+        - action: rebuild
+          path: ./apps/server/pnpm-lock.yaml
     working_dir: /app/apps/server
     depends_on:
       postgres:
@@ -60,14 +81,36 @@ services:
       - "${WEB_PORT}:3006"
     environment:
       NODE_ENV: development
-    volumes:
-      # Монтируем исходники для hot-reload
-      - ./apps/web/src:/app/apps/web/src
-      - ./apps/web/index.html:/app/apps/web/index.html
-      - ./apps/web/vite.config.ts:/app/apps/web/vite.config.ts
-      # Защищаем node_modules
-      - /app/node_modules
-      - /app/apps/web/node_modules
+      VITE_HOST: 0.0.0.0
+      VITE_PORT: 3006
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+    develop:
+      watch:
+        # Синхронизируем исходный код для HMR
+        - action: sync
+          path: ./apps/web/src
+          target: /app/apps/web/src
+          ignore:
+            - node_modules/
+            - dist/
+        - action: sync
+          path: ./apps/web/index.html
+          target: /app/apps/web/index.html
+        - action: sync
+          path: ./apps/web/vite.config.ts
+          target: /app/apps/web/vite.config.ts
+        - action: sync
+          path: ./apps/web/tsconfig.json
+          target: /app/apps/web/tsconfig.json
+        - action: sync
+          path: ./apps/web/tsconfig.node.json
+          target: /app/apps/web/tsconfig.node.json
+        # Пересобираем при изменении зависимостей
+        - action: rebuild
+          path: ./apps/web/package.json
+        - action: rebuild
+          path: ./apps/web/pnpm-lock.yaml
     working_dir: /app/apps/web
     depends_on:
       - server
@@ -77,6 +120,7 @@ services:
 
 volumes:
   postgres_data:
+    name: khammerson_postgres_data
 
 networks:
   khammerson_network:

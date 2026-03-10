@@ -18,27 +18,27 @@ pnpm run dev
 docker-compose up -d --build
 ```
 
-## Run app with docker
+## Run app with docker first time
 
 ```js
-docker-compose up -d 
+docker-compose up -d --build
+
+# 2. Запустить watch режим отдельно
+docker-compose watch
 ```
 
-## ReBuild server container(if change configs etc.)
+## Run app with docker later
 
 ```js
-docker-compose down server
-docker-compose -rm -f server
-docker-compose up -d --build server
+docker-compose up --watch
 ```
 
-
-## ReBuild web container(if change configs etc.)
+## ReBuild containers for development(if change configs etc.)
 
 ```js
-docker-compose down web
-docker-compose -rm -f web
-docker-compose up -d --build web
+docker-compose down -v
+docker-compose build
+docker-compose up --watch
 ```
 
 ## License
