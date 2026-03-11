@@ -10,9 +10,9 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "ignoreDeprecations": "6.0",
-    "paths": {
-      "@server/*": ["./apps/server/src/*"],
-      "@web/*": ["./apps/web/*"]
-    }
+    // "paths": {
+    //   "@server/*": ["./apps/server/src/*"],
+    //   "@web/*": ["./apps/web/*"]
+    // }
   }
 }
