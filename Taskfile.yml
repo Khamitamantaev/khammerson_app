@@ -49,7 +49,7 @@ tasks:
     cmds:
       - echo "Запуск development окружения..."
       - docker-compose up --watch
-
+  
   dev-down:
     desc: Остановить dev окружение
     cmds:
@@ -66,6 +66,12 @@ tasks:
     desc: Посмотреть логи dev
     cmds:
       - docker-compose logs -f
+  
+  dev-rebuild:
+    desc: Пересборка и запуск всего dev окружения...
+    cmds:
+      - docker-compose down
+      - docker-compose up --build --watch
 
   # === Production ===
   prod_postgres_build:
@@ -114,8 +120,7 @@ tasks:
     cmds:
       - echo "Пересборка production окружения..."
       - docker-compose -f {{.PROD_COMPOSE}} down
-      - docker-compose -f {{.PROD_COMPOSE}} build
-      - docker-compose -f {{.PROD_COMPOSE}} up -d
+      - docker-compose -f {{.PROD_COMPOSE}} up -d --build
 
   # Prod rebuild frontend
   p-r-f:
