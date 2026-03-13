@@ -3,3 +3,5 @@ dist
 build
 .env
 /postgres_data
+.env.development
+.env.production

@@ -12,15 +12,15 @@ import { ConfigService } from '@nestjs/config';
 export class TrpcRouter {
   private readonly logger = new Logger(TrpcRouter.name);
 
-  public appRouter: ReturnType<TrpcService['router']>;
-
   constructor(
     private readonly trpcService: TrpcService,
     private readonly usersRouter: UsersRouter,
     private readonly authRouter: AuthRouter,
     private readonly configService: ConfigService,
-  ) {
-    this.appRouter = this.trpcService.router({
+  ) {}
+
+  get appRouter() {
+    return this.trpcService.router({
       users: this.usersRouter.router,
       auth: this.authRouter.router,
     });
@@ -35,7 +35,6 @@ export class TrpcRouter {
       }),
     );
 
-    // Добавляем playground только если включено в конфиге
     const enablePlayground = this.configService.get('trpc.playground');
     if (enablePlayground) {
       app.use(

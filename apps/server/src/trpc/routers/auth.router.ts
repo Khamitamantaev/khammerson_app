@@ -1,44 +1,63 @@
-import { TrpcService } from '../trpc.service';
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import { TrpcService } from '../trpc.service';
+import { TRPCError } from '@trpc/server';
+import { AuthService } from '../../auth/auth.service';
 
 @Injectable()
 export class AuthRouter {
-  public router: ReturnType<TrpcService['router']>;
+  constructor(
+    private readonly trpcService: TrpcService,
+    private readonly authService: AuthService,
+  ) {}
 
-  constructor(private readonly trpc: TrpcService) {
-    this.router = this.trpc.router({
-      login: this.trpc.publicProcedure
+  get router() {
+    return this.trpcService.router({
+      login: this.trpcService.publicProcedure
         .input(
           z.object({
             email: z.email(),
             password: z.string().min(6),
           }),
         )
-        .mutation(({ input }) => {
-          return {
-            token: 'jwt_token_here',
-            user: { id: '1', email: input.email },
-          };
+        .mutation(async ({ input }) => {
+          try {
+            return await this.authService.login(input.email, input.password);
+          } catch (error) {
+            throw new TRPCError({
+              code: 'UNAUTHORIZED',
+              message: (error as Error).message,
+            });
+          }
         }),
 
-      register: this.trpc.publicProcedure
+      register: this.trpcService.publicProcedure
         .input(
           z.object({
             email: z.email(),
+            userName: z.string().min(2),
             password: z.string().min(6),
-            name: z.string().optional(),
           }),
         )
-        .mutation(({ input }) => {
-          return {
-            token: 'jwt_token_here',
-            user: { id: '2', email: input.email, name: input.name },
-          };
+        .mutation(async ({ input }) => {
+          try {
+            return await this.authService.register(
+              input.email,
+              input.password,
+              input.userName,
+            );
+          } catch (error) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: (error as Error).message,
+            });
+          }
         }),
 
-      me: this.trpc.protectedProcedure.query(({ ctx }) => {
-        return ctx.user;
+      me: this.trpcService.protectedProcedure.query(({ ctx }) => {
+        return {
+          user: ctx.user,
+        };
       }),
     });
   }

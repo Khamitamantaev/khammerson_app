@@ -1,6 +1,5 @@
 // src/shared/database/database.module.ts
 import { Module, Global } from '@nestjs/common';
-import { Pool } from 'pg';
 import { DatabaseService } from './database.service';
 
 @Global()
@@ -8,13 +7,13 @@ import { DatabaseService } from './database.service';
   providers: [
     DatabaseService,
     {
-      provide: Pool,
+      provide: 'DATABASE_POOL', // используем строковый токен
       useFactory: (databaseService: DatabaseService) => {
         return databaseService.getPool();
       },
       inject: [DatabaseService],
     },
   ],
-  exports: [DatabaseService, Pool],
+  exports: [DatabaseService, 'DATABASE_POOL'], // экспортируем строковый токен
 })
 export class DatabaseModule {}

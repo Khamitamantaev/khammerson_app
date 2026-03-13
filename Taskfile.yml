@@ -12,20 +12,34 @@ tasks:
       - task --list-all
 
   # === Development ===
+  dev_postgres_build:
+    desc: Запуск и создание development окружения в первый раз
+    cmds:
+      - echo "Запуск и создание development окружения в первый раз..."
+      - docker-compose up -d --build postgres_dev
+
+  dev_postgres:
+    desc: Запуск и создание development окружения в первый раз
+    cmds:
+      - echo "Запуск и создание development окружения в первый раз..."
+      - docker-compose up -d postgres_dev
+
   dev_build:
     desc: Запуск и создание development окружения в первый раз
     cmds:
       - echo "Запуск и создание development окружения в первый раз..."
       - docker-compose up --build --watch
   
-  dev-rebuild-server:
+  # Dev rebuild backend
+  d-r-b:
     desc: Пересоздание и запуск development окружения server
     cmds:
       - echo "Запуск и создание development окружения server..."
       - docker-compose up --build --watch server_dev
 
-  dev-rebuild-web:
-    desc: Пересоздание и запуск development окружения web
+  # Dev rebuild frontend
+  d-r-f:
+    desc: Пересоздание и запуск development окружения frontend
     cmds:
       - echo "Запуск и создание development окружения web..."
       - docker-compose up --build --watch web_dev
@@ -54,6 +68,18 @@ tasks:
       - docker-compose logs -f
 
   # === Production ===
+  prod_postgres_build:
+    desc: Запуск и создание development окружения в первый раз
+    cmds:
+      - echo "Запуск и создание development окружения в первый раз..."
+      - docker-compose -f docker-compose.prod.yml up -d --build postgres_prod
+
+  prod_postgres:
+    desc: Запуск и создание development окружения в первый раз
+    cmds:
+      - echo "Запуск и создание development окружения в первый раз..."
+      - docker-compose -f docker-compose.prod.yml up -d postgres_prod
+
   prod_build:
     desc: Запуск и сборка production окружения
     cmds:
@@ -91,14 +117,16 @@ tasks:
       - docker-compose -f {{.PROD_COMPOSE}} build
       - docker-compose -f {{.PROD_COMPOSE}} up -d
 
-  prod-rebuild-web:
+  # Prod rebuild frontend
+  p-r-f:
     desc: Пересобрать только web (prod)
     cmds:
       - echo "Пересборка web (production)..."
       - docker-compose -f {{.PROD_COMPOSE}} build web
       - docker-compose -f {{.PROD_COMPOSE}} up -d --no-deps web
 
-  prod-rebuild-server:
+  # Prod rebuild backend
+  p-r-b:
     desc: Пересобрать только server (prod)
     cmds:
       - echo "Пересборка server (production)..."
