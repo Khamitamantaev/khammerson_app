@@ -9,7 +9,7 @@ function App() {
     <>
       <div>
       </div>
-      <h1 className="bg-gray-500">Khamit www!!!</h1>
+      <h1 className="bg-gray-500">Test create User</h1>
       <CreateUserForm />
       <div className="card">
         <button onClick={() => setCount((count) => count + 1)}>

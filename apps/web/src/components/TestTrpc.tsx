@@ -41,6 +41,7 @@ export const TestPage = () => {
         email: `test${Date.now()}@test.com`,
         userName: `user${Date.now()}`,
         password: "123456",
+        name: 'Khamit'
       });
       setResult({ type: "CREATE_USER", data: newUser });
     } catch (error) {
