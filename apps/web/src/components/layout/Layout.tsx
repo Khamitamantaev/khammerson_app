@@ -1,7 +1,7 @@
-import { Outlet } from 'react-router-dom';
-import { Toaster } from 'sonner';
-import { Navbar } from './Navbar';
-import { Footer } from './Footer';
+import { Outlet } from "react-router-dom";
+import { Toaster } from "sonner";
+import { Navbar } from "./Navbar";
+import { Footer } from "./Footer";
 
 export const Layout = () => {
   return (
@@ -11,14 +11,14 @@ export const Layout = () => {
         theme="dark"
         toastOptions={{
           classNames: {
-            toast: 'bg-slate-800 border border-slate-700',
-            title: 'text-slate-100',
-            description: 'text-slate-400',
+            toast: "bg-slate-800 border border-slate-700",
+            title: "text-slate-100",
+            description: "text-slate-400",
           },
         }}
       />
       <Navbar />
-      <main className="flex-1">
+      <main className="flex-1 w-full">
         <Outlet />
       </main>
       <Footer />

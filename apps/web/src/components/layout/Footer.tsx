@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { Github, Twitter, Linkedin } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logo from "../assets/logo.jpg";
 
 export const Footer = () => {
   const links = [
@@ -33,11 +32,6 @@ export const Footer = () => {
           <div className="col-span-full lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-6">
               <motion.div whileHover={{ scale: 1.05 }} className="flex items-center gap-2">
-                <img
-                  src={logo}
-                  alt="Khammerson Logo"
-                  className="h-14 w-14 object-contain"
-                />
                 <span className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
                   Khammerson
                 </span>

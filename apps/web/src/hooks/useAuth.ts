@@ -1,39 +1,43 @@
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { trpc } from "../trpc/client";
+import { useNavigate } from "react-router-dom";
 
 export function useAuth() {
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Мутации
   const loginMutation = trpc.auth.login.useMutation();
   const registerMutation = trpc.auth.register.useMutation();
   const logoutMutation = trpc.auth.logout.useMutation();
 
-  // Запрос текущего пользователя (автоматически с cookies)
-  const { data: userData, refetch: refetchUser } = trpc.auth.me.useQuery(
-    undefined,
-    {
-      retry: false,
-      staleTime: 5 * 60 * 1000, // 5 минут
-    },
-  );
+  // Запрос текущего пользователя - без рефетча
+  const {
+    data: userData,
+    refetch: refetchUser,
+    isLoading: isUserLoading,
+  } = trpc.auth.me.useQuery(undefined, {
+    retry: false,
+    staleTime: 5 * 60 * 1000,
+    enabled: false, // 👈 пока отключим авто-запрос
+  });
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
       setError("");
-
       const result = await loginMutation.mutateAsync({ email, password });
-
-      // 👇 Обновляем данные пользователя после логина
+      console.log("2. Логин успешен:", result);
+      // 👇 ЯВНО получаем данные пользователя
       await refetchUser();
       queryClient.invalidateQueries();
-
+      navigate("/workspace");
       return result;
     } catch (err: any) {
+      console.error("Ошибка логина:", err);
       setError(err.message || "Login failed");
       throw err;
     } finally {
@@ -56,9 +60,9 @@ export function useAuth() {
         userName,
       });
 
-      // 👇 Обновляем данные пользователя после регистрации
-      await refetchUser();
+      // 👇 Убрали await refetchUser()
       queryClient.invalidateQueries();
+      navigate("/workspace");
 
       return result;
     } catch (err: any) {
@@ -72,14 +76,13 @@ export function useAuth() {
   const logout = async () => {
     try {
       await logoutMutation.mutateAsync();
-      // 👇 Очищаем кэш после выхода
       queryClient.clear();
+      navigate("/");
     } catch (err) {
       console.error("Logout error:", err);
     }
   };
 
-  // 👇 Токен больше не нужен - он в cookies
   const isAuthenticated = !!userData?.user;
 
   return {
@@ -90,6 +93,9 @@ export function useAuth() {
     user: userData?.user,
     error,
     isLoading:
-      isLoading || loginMutation.isPending || registerMutation.isPending,
+      isLoading ||
+      loginMutation.isPending ||
+      registerMutation.isPending ||
+      isUserLoading,
   };
 }

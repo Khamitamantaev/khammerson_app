@@ -60,6 +60,7 @@ export class AuthRouter {
         }),
 
       me: this.trpcService.protectedProcedure.query(({ ctx }) => {
+        console.log('me called, ctx.user:', ctx.user); // 👈 добавить лог
         return {
           user: ctx.user,
         };

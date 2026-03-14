@@ -65,7 +65,7 @@ export const LandingPage = () => {
             className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4"
           >
             <Link
-              to="/sign-up"
+              to="/login"
               className="inline-flex items-center px-8 py-3 bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-medium rounded-lg shadow-lg shadow-cyan-500/20 transition-all"
             >
               Начать бесплатно

@@ -1,24 +1,28 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Menu, X, User, LogOut } from "lucide-react";
 import { useState } from "react";
-import logo from "../assets/logo.jpg";
+// import logo from "../assets/logo.jpg";
+import { useAuth } from "@web/hooks/useAuth";
 import { cn } from "@web/lib/utils";
 
 export const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
-
-  // Заглушка для демонстрации (потом заменится на реальную логику)
-  const isAuthenticated = true;
-  const user = { userName: "Test User" };
-
+  const { isAuthenticated, user, logout } = useAuth();
+  const navigate = useNavigate();
   const links = [
     { name: "Продукт", path: "/product" },
     { name: "Решения", path: "/solutions" },
     { name: "Цены", path: "/pricing" },
     { name: "Ресурсы", path: "/resources" },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    setMobileOpen(false);
+    navigate("/");
+  };
 
   return (
     <motion.header
@@ -29,16 +33,16 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-5 py-3">
         <div className="flex items-center justify-between h-16">
           {/* Логотип */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/workspace" className="flex items-center gap-2">
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="flex items-center gap-2"
             >
-              <img
+              {/* <img
                 src={logo}
                 alt="Khammerson Logo"
                 className="h-14 w-14 object-contain"
-              />
+              /> */}
               <span className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-500">
                 Khammerson
               </span>
@@ -64,6 +68,7 @@ export const Navbar = () => {
           {/* Кнопки действий */}
           <div className="hidden md:flex items-center gap-2">
             {isAuthenticated ? (
+              // 👈 Если авторизован - показываем рабочие пространство и профиль
               <>
                 <Link
                   to="/workspace"
@@ -76,28 +81,29 @@ export const Navbar = () => {
                   className="px-4 py-2 border border-slate-700 rounded-md text-white hover:bg-slate-800 transition-colors flex items-center gap-2"
                 >
                   <User className="h-4 w-4" />
-                  {user.userName}
+                  {user?.email?.split("@")[0] || "Профиль"}
                 </Link>
                 <button
+                  onClick={handleLogout}
                   className="p-2 border border-slate-700 rounded-md text-white hover:bg-slate-800 hover:text-red-400 transition-colors"
-                  onClick={() => console.log("logout")}
                 >
                   <LogOut className="h-4 w-4" />
                 </button>
               </>
             ) : (
+              // 👈 Если не авторизован - показываем вход и регистрацию
               <>
                 <Link
-                  to="/sign-in"
+                  to="/login"
                   className="px-4 py-2 border border-slate-700 rounded-md text-white hover:bg-slate-800 transition-colors"
                 >
                   Вход
                 </Link>
                 <Link
-                  to="/sign-up"
-                  className="px-4 py-2 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-md text-white shadow-lg transition-colors"
+                  to="/register"
+                  className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-md transition-colors"
                 >
-                  Начать бесплатно
+                  Регистрация
                 </Link>
               </>
             )}
@@ -140,6 +146,7 @@ export const Navbar = () => {
 
               <div className="pt-4 space-y-2 border-t border-slate-800">
                 {isAuthenticated ? (
+                  // 👈 Мобильное меню для авторизованных
                   <>
                     <Link
                       to="/workspace"
@@ -153,40 +160,31 @@ export const Navbar = () => {
                       className="block px-4 py-2 border border-slate-700 rounded-md text-white hover:bg-slate-800 transition-colors"
                       onClick={() => setMobileOpen(false)}
                     >
-                      Профиль: {user.userName}
+                      Профиль
                     </Link>
                     <button
+                      onClick={handleLogout}
                       className="w-full px-4 py-2 border border-slate-700 rounded-md text-red-400 hover:text-red-300 hover:bg-slate-800 transition-colors text-left"
-                      onClick={() => {
-                        console.log("logout");
-                        setMobileOpen(false);
-                      }}
                     >
                       Выйти
                     </button>
                   </>
                 ) : (
+                  // 👈 Мобильное меню для неавторизованных
                   <>
                     <Link
-                      to="/workspace"
-                      className="block px-4 py-2 border border-slate-700 rounded-md text-white hover:bg-slate-800 transition-colors"
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      WorkSpace
-                    </Link>
-                    <Link
-                      to="/sign-in"
+                      to="/login"
                       className="block px-4 py-2 border border-slate-700 rounded-md text-white hover:bg-slate-800 transition-colors"
                       onClick={() => setMobileOpen(false)}
                     >
                       Вход
                     </Link>
                     <Link
-                      to="/sign-up"
-                      className="block px-4 py-2 bg-gradient-to-br from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 rounded-md text-white transition-colors text-center"
+                      to="/register"
+                      className="block px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-md transition-colors text-center"
                       onClick={() => setMobileOpen(false)}
                     >
-                      Начать бесплатно
+                      Регистрация
                     </Link>
                   </>
                 )}
