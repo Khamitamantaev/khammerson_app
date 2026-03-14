@@ -5,12 +5,12 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "module": "commonjs",
-    "declaration": true,
     "removeComments": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2023",
     "sourceMap": true,
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "esModuleInterop": true,
   },
   "exclude": ["node_modules"]
 }
