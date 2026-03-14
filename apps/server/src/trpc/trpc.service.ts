@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { initTRPC } from '@trpc/server';
-import { Context } from './context/trpc.context';
+import { Context, initializeServices } from './context/trpc.context';
 import superjson from 'superjson';
+import { JwtService } from '@nestjs/jwt';
+import { Pool } from 'pg';
 
 @Injectable()
 export class TrpcService {
@@ -10,6 +12,13 @@ export class TrpcService {
   public procedure = this.trpc.procedure;
   public router = this.trpc.router;
   public middleware = this.trpc.middleware;
+
+  constructor(
+    @Inject('DATABASE_POOL') private readonly pool: Pool,
+    private readonly jwtService: JwtService,
+  ) {
+    initializeServices(this.pool, this.jwtService);
+  }
 
   public publicProcedure = this.procedure;
 

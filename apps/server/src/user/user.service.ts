@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable, Inject } from '@nestjs/common'; // 👈 добавляем Inject
+// user.service.ts
+import { Injectable, Inject } from '@nestjs/common';
 import { Pool } from 'pg';
 
 export interface User {
@@ -12,11 +11,13 @@ export interface User {
   updatedAt: Date;
 }
 
+export interface UserWithPassword extends User {
+  password: string;
+}
+
 @Injectable()
 export class UserService {
-  constructor(
-    @Inject('DATABASE_POOL') private readonly pool: Pool, // 👈 используем строковый токен
-  ) {}
+  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
 
   private mapUserRow(row: any): User {
     return {
@@ -31,7 +32,7 @@ export class UserService {
 
   async findUserByEmail(email: string): Promise<User | null> {
     const result = await this.pool.query(
-      'SELECT id, email, user_name, name, created_at, updated_at FROM users WHERE email = $1',
+      'SELECT id, email, user_name, name, created_at, updated_at FROM "users" WHERE email = $1',
       [email],
     );
 
@@ -40,6 +41,31 @@ export class UserService {
     }
 
     return this.mapUserRow(result.rows[0]);
+  }
+
+  // ✅ Новый метод для авторизации (с паролем)
+  async findUserByEmailWithPassword(
+    email: string,
+  ): Promise<UserWithPassword | null> {
+    const result = await this.pool.query(
+      'SELECT id, email, user_name, password, name, created_at, updated_at FROM "users" WHERE email = $1',
+      [email],
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      email: row.email,
+      userName: row.user_name,
+      password: row.password,
+      name: row.name,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
   }
 
   async findUserById(id: string): Promise<User | null> {

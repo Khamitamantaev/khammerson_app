@@ -1,60 +1,26 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-// src/modules/auth/auth.service.ts
+// auth.service.ts
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-
-export interface User {
-  id: string;
-  email: string;
-  userName: string;
-  password: string;
-  name?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @Inject('DATABASE_POOL') private readonly pool: Pool,
     private readonly jwtService: JwtService,
+    private readonly userService: UserService,
   ) {}
 
-  private async findUserByEmail(email: string): Promise<User | null> {
-    const result = await this.pool.query(
-      'SELECT * FROM "users" WHERE email = $1',
-      [email],
-    );
-
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      email: row.email,
-      userName: row.user_name,
-      password: row.password,
-      name: row.name,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
-  }
-
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<Omit<User, 'password'> | null> {
-    const user = await this.findUserByEmail(email);
+  async validateUser(email: string, password: string) {
+    // Используем новый метод с паролем
+    const user = await this.userService.findUserByEmailWithPassword(email);
 
     if (user && (await bcrypt.compare(password, user.password))) {
-      const { password: _, ...result } = user;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _, ...result } = user; // удаляем пароль из результата
       return result;
     }
     return null;
@@ -83,8 +49,8 @@ export class AuthService {
   }
 
   async register(email: string, password: string, userName: string) {
-    // Проверяем существующего пользователя
-    const existingUser = await this.findUserByEmail(email);
+    // Проверяем существующего пользователя (без пароля)
+    const existingUser = await this.userService.findUserByEmail(email);
 
     if (existingUser) {
       throw new UnauthorizedException(
@@ -92,7 +58,6 @@ export class AuthService {
       );
     }
 
-    // ✅ Добавил проверку на пустые значения
     if (!email || !password || !userName) {
       throw new UnauthorizedException('Все поля обязательны');
     }
@@ -126,29 +91,13 @@ export class AuthService {
   verifyToken(token: string) {
     try {
       return this.jwtService.verify<JwtPayload>(token);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
       throw new UnauthorizedException('Invalid token');
     }
   }
 
-  async findUserById(userId: string): Promise<Omit<User, 'password'> | null> {
-    const result = await this.pool.query(
-      'SELECT id, email, user_name, name, created_at, updated_at FROM "users" WHERE id = $1',
-      [userId],
-    );
-
-    if (result.rows.length === 0) {
-      return null;
-    }
-
-    const row = result.rows[0];
-    return {
-      id: row.id,
-      email: row.email,
-      userName: row.user_name,
-      name: row.name,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-    };
+  async findUserById(userId: string) {
+    return this.userService.findUserById(userId); // используем UserService
   }
 }
