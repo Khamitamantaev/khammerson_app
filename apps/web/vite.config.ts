@@ -8,25 +8,23 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const isProd = mode === "production";
   const port = parseInt(env.VITE_PORT);
-  console.log("VITE RUNNING PORT: ", port);
-
   return {
     plugins: [react(), tailwindcss()],
 
     // Базовый путь
     base: "/",
-    // resolve: {
-    //   alias: [
-    //     {
-    //       find: "@server",
-    //       replacement: resolve(projectRootDir, "../apps/server/src"),
-    //     },
-    //     {
-    //       find: "@web",
-    //       replacement: resolve(projectRootDir, "./src"),
-    //     },
-    //   ],
-    // },
+    resolve: {
+      alias: [
+        {
+          find: "@server",
+          replacement: resolve(__dirname, "../server/src"), // 👈 изменили путь
+        },
+        {
+          find: "@web",
+          replacement: resolve(__dirname, "./src"),
+        },
+      ],
+    },
     server: {
       host: true,
       port: port,

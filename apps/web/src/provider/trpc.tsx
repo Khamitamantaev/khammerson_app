@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { trpc } from "../trpc/client";
 import { isTRPCClientError } from "../trpc/isTRPCClientError";
 import { env } from "../lib/env";
-import superjson from "superjson"; // <-- импортируем superjson
+import superjson from "superjson";
 
 export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -44,15 +44,12 @@ export const TrpcProvider: React.FC<{ children: React.ReactNode }> = ({
           enabled: () => import.meta.env.DEV,
         }),
         httpBatchLink({
-          url: env.VITE_API_URL,
-          // Добавляем transformer
+          url: env.VITE_API_URL, // 👈 теперь должно работать
           transformer: superjson,
-          headers: () => {
-            const token = localStorage.getItem("token");
-            return {
-              Authorization: token ? `Bearer ${token}` : "",
-            };
-          },
+          fetch: (input, init) => fetch(input, {
+            ...init,
+            credentials: "include",
+          }),
         }),
       ],
     }),

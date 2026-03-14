@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { Injectable } from '@nestjs/common';
-import { initTRPC } from '@trpc/server';
+import { Injectable, Inject } from '@nestjs/common';
+import { initTRPC, TRPCError } from '@trpc/server';
 import { Context } from './context/trpc.context';
 import superjson from 'superjson';
+import { JwtService } from '@nestjs/jwt';
+import { Pool } from 'pg';
 
 @Injectable()
 export class TrpcService {
@@ -11,11 +13,19 @@ export class TrpcService {
   public router = this.trpc.router;
   public middleware = this.trpc.middleware;
 
+  constructor(
+    @Inject('DATABASE_POOL') private readonly pool: Pool,
+    private readonly jwtService: JwtService,
+  ) {}
+
   public publicProcedure = this.procedure;
 
   public protectedProcedure = this.procedure.use(async ({ ctx, next }) => {
     if (!ctx.user) {
-      throw new Error('Not authenticated');
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Not authenticated',
+      });
     }
     return next({
       ctx: {

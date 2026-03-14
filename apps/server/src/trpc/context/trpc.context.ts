@@ -1,3 +1,5 @@
+import { JwtService } from '@nestjs/jwt';
+import { Pool } from 'pg';
 import { Request, Response } from 'express';
 
 export interface User {
@@ -10,22 +12,52 @@ export interface Context {
   req: Request;
   res: Response;
   user: User | null;
+  pool: Pool;
+}
+
+interface CreateContextOptions {
+  req: Request;
+  res: Response;
+  jwtService: JwtService;
+  pool: Pool;
 }
 
 export const createContext = ({
   req,
   res,
-}: {
-  req: Request;
-  res: Response;
-}): Context => {
-  // Здесь можно достать пользователя из сессии/JWT
-  // Например:
-  // const user = req.session?.user ?? null;
+  jwtService,
+  pool,
+}: CreateContextOptions): Context => {
+  let user = null;
+
+  // 1. Проверяем Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const token = authHeader.substring(7);
+    try {
+      const decoded = jwtService.verify<{ sub: string; email: string }>(token);
+      user = { id: decoded.sub, email: decoded.email };
+    } catch (error) {
+      console.warn('Invalid token:', (error as Error).message);
+    }
+  }
+
+  // 2. Если нет токена в header, проверяем cookies
+  if (!user && req.cookies?.access_token) {
+    try {
+      const decoded = jwtService.verify<{ sub: string; email: string }>(
+        req.cookies.access_token,
+      );
+      user = { id: decoded.sub, email: decoded.email };
+    } catch (error) {
+      console.warn('Invalid cookie token:', (error as Error).message);
+    }
+  }
 
   return {
     req,
     res,
-    user: null, // Замените на реальную логику аутентификации
+    user,
+    pool,
   };
 };
