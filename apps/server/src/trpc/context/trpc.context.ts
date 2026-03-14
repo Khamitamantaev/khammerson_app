@@ -33,6 +33,7 @@ export const initializeServices = (pool?: Pool, jwtService?: JwtService) => {
   return { poolInstance, jwtServiceInstance };
 };
 
+// context.ts
 export const createContext = ({
   req,
   res,
@@ -41,7 +42,7 @@ export const createContext = ({
 
   let user = null;
 
-  // Проверяем Authorization header
+  // 1. Проверяем Authorization header (для обратной совместимости)
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
@@ -49,19 +50,24 @@ export const createContext = ({
       const decoded = jwtServiceInstance.verify<{ sub: string; email: string }>(
         token,
       );
-
-      user = {
-        id: decoded.sub,
-        email: decoded.email,
-      };
+      user = { id: decoded.sub, email: decoded.email };
     } catch (error) {
       console.warn('Invalid token:', (error as Error).message);
     }
   }
 
-  // Можно также проверять cookies
-  // const token = req.cookies?.access_token;
-  // if (token) { ... }
+  // 2. Если нет токена в header, проверяем cookies
+  if (!user && req.cookies?.access_token) {
+    try {
+      const decoded = jwtServiceInstance.verify<{ sub: string; email: string }>(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        req.cookies.access_token,
+      );
+      user = { id: decoded.sub, email: decoded.email };
+    } catch (error) {
+      console.warn('Invalid cookie token:', (error as Error).message);
+    }
+  }
 
   return {
     req,

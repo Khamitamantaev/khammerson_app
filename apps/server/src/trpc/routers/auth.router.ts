@@ -20,9 +20,14 @@ export class AuthRouter {
             password: z.string().min(6),
           }),
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
+          //  добавил ctx
           try {
-            return await this.authService.login(input.email, input.password);
+            return await this.authService.login(
+              input.email,
+              input.password,
+              ctx.res,
+            );
           } catch (error) {
             throw new TRPCError({
               code: 'UNAUTHORIZED',
@@ -58,6 +63,10 @@ export class AuthRouter {
         return {
           user: ctx.user,
         };
+      }),
+
+      logout: this.trpcService.protectedProcedure.mutation(({ ctx }) => {
+        return this.authService.logout(ctx.res);
       }),
     });
   }

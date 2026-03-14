@@ -5,7 +5,7 @@ import * as bcrypt from 'bcryptjs';
 import { Pool } from 'pg';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserService } from '../user/user.service';
-
+import { Response } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,18 +15,19 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, password: string) {
-    // Используем новый метод с паролем
     const user = await this.userService.findUserByEmailWithPassword(email);
+    console.log('Found user:', user ? '✅' : '❌'); // Добавьте лог
 
     if (user && (await bcrypt.compare(password, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password: _, ...result } = user; // удаляем пароль из результата
+      const { password: _, ...result } = user;
       return result;
     }
     return null;
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string, res: Response) {
+    // 👈 добавили res
     const user = await this.validateUser(email, password);
 
     if (!user) {
@@ -38,8 +39,19 @@ export class AuthService {
       email: user.email,
     };
 
+    const token = this.jwtService.sign(payload);
+
+    // Устанавливаем cookie
+    res.cookie('access_token', token, {
+      httpOnly: true, // нельзя прочитать через JavaScript
+      secure: process.env.NODE_ENV === 'production', // HTTPS только в production
+      sameSite: 'lax', // защита от CSRF
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 дней
+      path: '/',
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token, // пока оставим для обратной совместимости
       user: {
         id: user.id,
         email: user.email,
@@ -99,5 +111,15 @@ export class AuthService {
 
   async findUserById(userId: string) {
     return this.userService.findUserById(userId); // используем UserService
+  }
+
+  logout(res: Response) {
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+    });
+    return { success: true };
   }
 }

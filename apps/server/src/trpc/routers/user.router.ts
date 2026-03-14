@@ -4,6 +4,7 @@ import { Injectable, Inject } from '@nestjs/common'; // 👈 добавляем 
 import { z } from 'zod';
 import { Pool } from 'pg';
 import { TrpcService } from '../trpc.service';
+import * as bcrypt from 'bcryptjs';
 
 export interface User {
   id: string;
@@ -85,13 +86,13 @@ export class UsersRouter {
             throw new Error('User with this email already exists');
           }
 
+          const hashedPassword = await bcrypt.hash(input.password, 10);
+
           const result = await this.pool.query(
-            `
-            INSERT INTO "users" (name, email, user_name, password) 
-            VALUES ($1, $2, $3, $4) 
-            RETURNING id, name, email, user_name, created_at, updated_at
-          `,
-            [input.name, input.email, input.userName, input.password],
+            `INSERT INTO "users" (name, email, user_name, password) 
+             VALUES ($1, $2, $3, $4) 
+             RETURNING id, name, email, user_name, created_at, updated_at`,
+            [input.name, input.email, input.userName, hashedPassword], // 👈 хешированный пароль
           );
 
           return this.mapUserRow(result.rows[0]);
