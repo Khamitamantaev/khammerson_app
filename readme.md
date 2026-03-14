@@ -29,34 +29,42 @@ pnpm run dev
 ```js
 pnpm i -g @go-task/cli
 ```
-## Task default выдаст стандартные команды для запуска, среди которых:
-
-## Запуск development app с watch и сборкой(Здесь так же при помощи watch можно спокойно разрабатывать с hot-reload)
-
-```js
-task dev_build
-```
-
-## Run development app
-
-```js
-task dev
-```
-
-## Run production app со сборкой
-```js
-task prod_build
-```
-
-## Run production app
-
-```js
-task prod
-```
-
 ## Все доступные команды можно увидеть в task default:
 ```js
 task default
+```
+## Основные команды:
+
+# ================ Development =================
+Запуск и создание development окружения в первый раз
+```js
+task dev-build
+```
+
+Запустить dev окружение с watch режимом
+```js
+task dev-up
+```
+
+Пересборка и запуск всего dev окружения...
+```js
+task dev-rebuild
+```
+
+# ================ Production =================
+Запуск и сборка production окружения...
+```js
+task prod-build
+```
+
+Запуск production окружения...
+```js
+task prod-up
+```
+
+Пересобрать и запустить prod заново
+```js
+task  prod-rebuild
 ```
 
 ## Trpc-playground, примеры запросов

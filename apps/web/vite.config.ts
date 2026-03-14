@@ -7,7 +7,8 @@ import { resolve } from "path";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const isProd = mode === "production";
-  const port = parseInt(env.VITE_PORT) || (isProd ? 3005 : 3006);
+  const port = parseInt(env.VITE_PORT);
+  console.log("VITE RUNNING PORT: ", port);
 
   return {
     plugins: [react(), tailwindcss()],

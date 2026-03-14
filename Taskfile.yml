@@ -10,25 +10,79 @@ tasks:
     desc: Показать список доступных команд
     cmds:
       - task --list-all
+      
+# ============= Основные команды ====================
 
-  # === Development ===
-  dev_postgres_build:
-    desc: Запуск и создание development окружения в первый раз
-    cmds:
-      - echo "Запуск и создание development окружения в первый раз..."
-      - docker-compose up -d --build postgres_dev
+  # ================ Development =================
 
-  dev_postgres:
-    desc: Запуск и создание development окружения в первый раз
-    cmds:
-      - echo "Запуск и создание development окружения в первый раз..."
-      - docker-compose up -d postgres_dev
-
-  dev_build:
+  dev-build:
     desc: Запуск и создание development окружения в первый раз
     cmds:
       - echo "Запуск и создание development окружения в первый раз..."
       - docker-compose up --build --watch
+
+  dev-up:
+    desc: Запустить dev окружение с watch режимом
+    cmds:
+      - echo "Запуск development окружения..."
+      - docker-compose up --watch
+
+  dev-rebuild:
+    desc: Пересборка и запуск всего dev окружения...
+    cmds:
+      - docker-compose down
+      - docker-compose up --build --watch
+
+  # ================ Production =================
+  prod-build:
+    desc: Запуск и сборка production окружения
+    cmds:
+      - echo "Запуск и сборка production окружения..."
+      - docker-compose -f {{.PROD_COMPOSE}} up -d --build 
+  
+  prod-up:
+    desc: Запустить prod окружение в фоне
+    cmds:
+      - echo "Запуск production окружения..."
+      - docker-compose -f {{.PROD_COMPOSE}} up -d
+
+  prod-rebuild:
+    desc: Пересобрать и запустить prod заново
+    cmds:
+      - echo "Пересборка production окружения..."
+      - docker-compose -f {{.PROD_COMPOSE}} down
+      - docker-compose -f {{.PROD_COMPOSE}} up -d --build 
+
+
+# ============= Logs ====================
+
+  # ================ Development logs =================
+  dev-logs:
+    desc: Посмотреть логи dev
+    cmds:
+      - docker-compose logs -f
+
+  # ================ Production logs =================  
+  prod-logs:
+    desc: Посмотреть логи prod
+    cmds:
+      - docker-compose -f {{.PROD_COMPOSE}} logs -f
+
+
+
+
+  # === Development ===
+  dev_postgres_build:
+    desc: Запуск и создание development окружения postgres
+    cmds:
+      - echo "Запуск и создание development окружения"
+      - docker-compose up -d --build postgres_dev
+
+  dev_postgres:
+    desc: Запуск development окружения postgres dev
+    cmds:
+      - echo "Запуск и создание development окружения в первый раз..."
+      - docker-compose up -d postgres_dev
   
   # Dev rebuild backend
   d-r-b:
@@ -43,12 +97,6 @@ tasks:
     cmds:
       - echo "Запуск и создание development окружения web..."
       - docker-compose up --build --watch web_dev
-
-  dev:
-    desc: Запустить dev окружение с watch режимом
-    cmds:
-      - echo "Запуск development окружения..."
-      - docker-compose up --watch
   
   dev-down:
     desc: Остановить dev окружение
@@ -62,16 +110,7 @@ tasks:
       - echo "Остановка development окружения и удаление volumes..."
       - docker-compose down -v
 
-  dev-logs:
-    desc: Посмотреть логи dev
-    cmds:
-      - docker-compose logs -f
   
-  dev-rebuild:
-    desc: Пересборка и запуск всего dev окружения...
-    cmds:
-      - docker-compose down
-      - docker-compose up --build --watch
 
   # === Production ===
   prod_postgres_build:
@@ -86,17 +125,9 @@ tasks:
       - echo "Запуск и создание development окружения в первый раз..."
       - docker-compose -f docker-compose.prod.yml up -d postgres_prod
 
-  prod_build:
-    desc: Запуск и сборка production окружения
-    cmds:
-      - echo "Запуск и сборка production окружения..."
-      - docker-compose -f {{.PROD_COMPOSE}} up -d --build
+ 
 
-  prod:
-    desc: Запустить prod окружение в фоне
-    cmds:
-      - echo "Запуск production окружения..."
-      - docker-compose -f {{.PROD_COMPOSE}} up -d
+
 
   prod-down:
     desc: Остановить prod окружение
@@ -110,17 +141,7 @@ tasks:
       - echo "Остановка production окружения и удаление volumes..."
       - docker-compose -f {{.PROD_COMPOSE}} down -v
 
-  prod-logs:
-    desc: Посмотреть логи prod
-    cmds:
-      - docker-compose -f {{.PROD_COMPOSE}} logs -f
-
-  prod-rebuild:
-    desc: Пересобрать и запустить prod заново
-    cmds:
-      - echo "Пересборка production окружения..."
-      - docker-compose -f {{.PROD_COMPOSE}} down
-      - docker-compose -f {{.PROD_COMPOSE}} up -d --build
+  
 
   # Prod rebuild frontend
   p-r-f:
