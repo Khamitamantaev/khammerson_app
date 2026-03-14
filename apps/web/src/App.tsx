@@ -19,6 +19,7 @@ import { AboutPage } from "./pages/About";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
+import { WelcomePage } from "./pages/WelcomePage";
 
 export const App = () => {
   return (
@@ -73,7 +74,14 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/welcome"
+            element={
+              <ProtectedRoute>
+                <WelcomePage />
+              </ProtectedRoute>
+            }
+          />
           {/* 404 - можно добавить отдельную страницу */}
           <Route path="*" element={<NotFoundPage />} />
         </Route>

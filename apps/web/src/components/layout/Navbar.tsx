@@ -33,7 +33,10 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-5 py-3">
         <div className="flex items-center justify-between h-16">
           {/* Логотип */}
-          <Link to="/workspace" className="flex items-center gap-2">
+          <Link
+            to={isAuthenticated ? "/workspace" : "/"}
+            className="flex items-center gap-2"
+          >
             <motion.div
               whileHover={{ scale: 1.05 }}
               className="flex items-center gap-2"

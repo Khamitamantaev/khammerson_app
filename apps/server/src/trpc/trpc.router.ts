@@ -7,6 +7,8 @@ import { AuthRouter } from './routers/auth.router';
 import { createContext } from './context/trpc.context';
 import { expressHandler } from 'trpc-playground/handlers/express';
 import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class TrpcRouter {
@@ -27,11 +29,20 @@ export class TrpcRouter {
   }
 
   async applyMiddleware(app: INestApplication) {
+    const jwtService = app.get(JwtService);
+    const pool = app.get('DATABASE_POOL');
+
     app.use(
       '/trpc',
       trpcExpress.createExpressMiddleware({
         router: this.appRouter,
-        createContext,
+        createContext: ({ req, res }) =>
+          createContext({
+            req,
+            res,
+            jwtService,
+            pool,
+          }),
       }),
     );
 

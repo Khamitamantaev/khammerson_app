@@ -44,12 +44,13 @@ export class AuthRouter {
             password: z.string().min(6),
           }),
         )
-        .mutation(async ({ input }) => {
+        .mutation(async ({ input, ctx }) => {
           try {
             return await this.authService.register(
               input.email,
               input.password,
               input.userName,
+              ctx.res,
             );
           } catch (error) {
             throw new TRPCError({
@@ -60,7 +61,6 @@ export class AuthRouter {
         }),
 
       me: this.trpcService.protectedProcedure.query(({ ctx }) => {
-        console.log('me called, ctx.user:', ctx.user); // 👈 добавить лог
         return {
           user: ctx.user,
         };

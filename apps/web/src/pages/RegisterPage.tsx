@@ -35,7 +35,7 @@ export const RegisterPage = () => {
 
     try {
       await register(email, password, userName);
-      navigate("/workspace");
+      navigate("/welcome");
       toast.success("Регистрация успешна");
     } catch (err: any) {
       toast.error(err.message || "Ошибка регистрации");

@@ -1,5 +1,5 @@
 // components/routes/ProtectedRoute.tsx
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { ROUTES } from "../../lib/routes";
 
@@ -13,18 +13,20 @@ export const ProtectedRoute = ({
   redirectTo = ROUTES.LOGIN,
 }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading } = useAuth();
-
-  // console.log("ProtectedRoute - isAuthenticated:", isAuthenticated);
-  // console.log("ProtectedRoute - isLoading:", isLoading);
+  const location = useLocation();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500" />
+      </div>
+    );
   }
 
   if (!isAuthenticated) {
-    console.log("Not authenticated, redirecting to", redirectTo);
-    return <Navigate to={redirectTo} replace />;
+    return <Navigate to={redirectTo} state={{ from: location.pathname }} replace />;
   }
 
+  // Если авторизован - показываем запрошенную страницу
   return <>{children}</>;
 };

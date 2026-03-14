@@ -16,8 +16,6 @@ export class AuthService {
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.findUserByEmailWithPassword(email);
-    console.log('Found user:', user ? '✅' : '❌'); // Добавьте лог
-
     if (user && (await bcrypt.compare(password, user.password))) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password: _, ...result } = user;
@@ -60,7 +58,12 @@ export class AuthService {
     };
   }
 
-  async register(email: string, password: string, userName: string) {
+  async register(
+    email: string,
+    password: string,
+    userName: string,
+    res: Response,
+  ) {
     // Проверяем существующего пользователя (без пароля)
     const existingUser = await this.userService.findUserByEmail(email);
 
@@ -89,9 +92,17 @@ export class AuthService {
       sub: user.id,
       email: user.email,
     };
+    const token = this.jwtService.sign(payload);
+    res.cookie('access_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
 
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: token,
       user: {
         id: user.id,
         email: user.email,

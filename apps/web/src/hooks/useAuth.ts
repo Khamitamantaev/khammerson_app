@@ -14,27 +14,37 @@ export function useAuth() {
   const registerMutation = trpc.auth.register.useMutation();
   const logoutMutation = trpc.auth.logout.useMutation();
 
-  // Запрос текущего пользователя - без рефетча
+  // Запрос текущего пользователя - включается только при наличии токена
   const {
     data: userData,
     refetch: refetchUser,
     isLoading: isUserLoading,
+    error: userError,
+    isFetching,
   } = trpc.auth.me.useQuery(undefined, {
-    retry: false,
+    retry: (failureCount, error) => {
+      // Не делаем retry при 401 (нет авторизации)
+      if (error.data?.code === "UNAUTHORIZED") return false;
+      return failureCount < 2;
+    },
     staleTime: 5 * 60 * 1000,
-    enabled: false, // 👈 пока отключим авто-запрос
+    retryOnMount: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
       setError("");
+
       const result = await loginMutation.mutateAsync({ email, password });
-      console.log("2. Логин успешен:", result);
+
       // 👇 ЯВНО получаем данные пользователя
       await refetchUser();
       queryClient.invalidateQueries();
       navigate("/workspace");
+
       return result;
     } catch (err: any) {
       console.error("Ошибка логина:", err);
@@ -60,9 +70,12 @@ export function useAuth() {
         userName,
       });
 
-      // 👇 Убрали await refetchUser()
+      // 👇 Добавляем refetch после регистрации
+      await refetchUser();
       queryClient.invalidateQueries();
-      navigate("/workspace");
+
+      console.log("✅ Регистрация успешна, редирект на /welcome");
+      navigate("/welcome");
 
       return result;
     } catch (err: any) {
@@ -83,19 +96,25 @@ export function useAuth() {
     }
   };
 
+  // Проверяем авторизацию
   const isAuthenticated = !!userData?.user;
+  const isUnauthorized = userError?.data?.code === "UNAUTHORIZED";
+
+  // Статус загрузки
+  const isLoadingUser = isUserLoading || isFetching;
 
   return {
     login,
     register,
     logout,
     isAuthenticated,
+    isUnauthorized,
     user: userData?.user,
     error,
     isLoading:
       isLoading ||
       loginMutation.isPending ||
       registerMutation.isPending ||
-      isUserLoading,
+      isLoadingUser,
   };
 }
