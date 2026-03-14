@@ -20,6 +20,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { WelcomePage } from "./pages/WelcomePage";
+import { CanvasEditorPage } from "./pages/CanvasEditorPage";
 
 export const App = () => {
   return (
@@ -60,8 +61,16 @@ export const App = () => {
             path={ROUTES.WORKSPACE}
             element={
               <ProtectedRoute>
+                <WorkspacePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path={ROUTES.CANVAS}
+            element={
+              <ProtectedRoute>
                 <ReactFlowProvider>
-                  <WorkspacePage />
+                  <CanvasEditorPage />
                 </ReactFlowProvider>
               </ProtectedRoute>
             }
