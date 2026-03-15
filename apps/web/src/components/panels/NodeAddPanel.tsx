@@ -85,7 +85,7 @@ export const NodeAddPanel = ({
   // Все хуки вызываем в начале, ДО любых условий
   const { currentCanvasId } = useCanvasStore();
   const [isOpen, setIsOpen] = useState(true);
-  const [position, setPosition] = useState({ x: 330, y: 100 });
+  const [position, setPosition] = useState({ x: 330, y: 160 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const panelRef = useRef<HTMLDivElement>(null);
@@ -114,7 +114,7 @@ export const NodeAddPanel = ({
       // Динамическая минимальная ширина в зависимости от состояния панели проектов
       const minX = isCanvasListCollapsed ? 100 : 330; // 100px если свернута, 330px если развернута
       const maxX = window.innerWidth - 200; // Правая граница
-      const minY = 100; // Под навбаром
+      const minY = 160; // Под навбаром
       const maxY = window.innerHeight - 300; // Нижняя граница
 
       // Ограничиваем координаты

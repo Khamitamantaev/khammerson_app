@@ -6,71 +6,52 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useEffect, useCallback, useState } from "react";
+import { useParams } from "react-router-dom";
 import {
   useCanvasStore,
   useCurrentCanvas,
   useCurrentEdges,
   useCurrentNodes,
 } from "@web/store/FlowStore";
-import { CanvasList } from "@web/components/canvas/CanvasList";
 import { NodeAddPanel } from "@web/components/panels/NodeAddPanel";
 import { nodeTypes } from "@web/components/node/nodeTypes";
-
-const createTestCanvas = () => ({
-  id: `canvas-${Date.now()}`,
-  title: "Тестовый проект",
-  description: "Просто для проверки",
-  nodes: [
-    {
-      id: "1",
-      type: "folder", // вместо "default"
-      data: { label: "Папка src", nodeType: "folder" },
-      position: { x: 250, y: 100 },
-    },
-    {
-      id: "2",
-      type: "file", // вместо отсутствия type
-      data: {
-        label: "Файл index.ts",
-        nodeType: "file",
-        content: "// index.ts",
-      },
-      position: { x: 100, y: 200 },
-    },
-    {
-      id: "3",
-      type: "file", // вместо отсутствия type
-      data: { label: "Файл App.tsx", nodeType: "file", content: "// App.tsx" },
-      position: { x: 400, y: 200 },
-    },
-  ],
-  edges: [
-    { id: "e1-2", source: "1", target: "2" },
-    { id: "e1-3", source: "1", target: "3" },
-  ],
-});
+import { trpc } from "@web/trpc/client";
+import { Toolbar } from "@web/components/main/Toolbar";
+import { Sidebar } from "@web/components/canvas/Sidebar";
+import { StatusBar } from "@web/components/main/StatusBar";
+import { PropertiesPanel } from "@web/components/main/PropertiesPanel";
 
 export const CanvasEditorPage = () => {
+  const { projectId } = useParams();
   const nodes = useCurrentNodes();
   const edges = useCurrentEdges();
-  const currentCanvas = useCurrentCanvas();
   const { actions, currentCanvasId } = useCanvasStore();
-  const [isCanvasListCollapsed, setIsCanvasListCollapsed] = useState(false);
+  // Загружаем канвасы проекта
+  const { data: canvases = [] } = trpc.canvas.getProjectCanvases.useQuery(
+    { projectId: projectId! },
+    { enabled: !!projectId },
+  );
+
+  // Сохраняем канвасы и projectId в стор
+  useEffect(() => {
+    if (projectId) {
+      actions.setCurrentProjectId(projectId);
+    }
+  }, [projectId, actions]);
 
   useEffect(() => {
-    if (!currentCanvasId) {
-      const testCanvas = createTestCanvas();
-      actions.addCanvas(testCanvas);
-      actions.setCurrentCanvasId(testCanvas.id);
+    if (canvases.length > 0) {
+      actions.setCanvases(canvases);
     }
-  }, [currentCanvasId, actions]);
+  }, [canvases, actions]);
 
   const onConnect = useCallback(
     (params: any) => {
+      if (!currentCanvasId || currentCanvasId === "global-library") return;
       const newEdge = { ...params, id: `e${params.source}-${params.target}` };
       actions.updateCurrentCanvasEdges((edges) => [...edges, newEdge]);
     },
-    [actions],
+    [actions, currentCanvasId],
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -81,11 +62,11 @@ export const CanvasEditorPage = () => {
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+      if (!currentCanvasId || currentCanvasId === "global-library") return;
 
       const type = event.dataTransfer.getData("application/reactflow");
       if (!type) return;
 
-      // Получаем координаты относительно канваса
       const reactFlowBounds = event.currentTarget.getBoundingClientRect();
       const position = {
         x: event.clientX - reactFlowBounds.left,
@@ -94,7 +75,7 @@ export const CanvasEditorPage = () => {
 
       const newNode = {
         id: `node-${Date.now()}`,
-        type: type, // Убираем условие, используем переданный тип напрямую
+        type: type,
         data: {
           label: `Новая ${type}`,
           nodeType: type,
@@ -105,48 +86,90 @@ export const CanvasEditorPage = () => {
 
       actions.updateCurrentCanvasNodes((nodes) => [...nodes, newNode]);
     },
-    [actions],
+    [actions, currentCanvasId],
   );
 
-  return (
-    <div className="h-screen w-full bg-gradient-to-b from-slate-950 to-slate-900">
-      <div className="flex h-full pt-22">
-        {/* Левая панель со списком канвасов */}
-        <CanvasList
-          isCollapsed={isCanvasListCollapsed}
-          onCollapse={setIsCanvasListCollapsed}
-        />
+  const onNodesChange = useCallback(
+    (changes: any) => {
+      if (!currentCanvasId || currentCanvasId === "global-library") return;
+      actions.onNodesChange(changes);
+    },
+    [actions, currentCanvasId],
+  );
 
-        {/* Правая часть с ReactFlow - занимает всё оставшееся место */}
-        <div className="flex-1 h-full relative">
-          <div className="absolute inset-0">
+  const onEdgesChange = useCallback(
+    (changes: any) => {
+      if (!currentCanvasId || currentCanvasId === "global-library") return;
+      actions.onEdgesChange(changes);
+    },
+    [actions, currentCanvasId],
+  );
+
+  // Проверяем, выбран ли глобальный канвас
+  const isGlobalCanvas = currentCanvasId === "global-library";
+
+  return (
+    <div className="flex h-screen pt-22 bg-gradient-to-b from-slate-950 to-slate-900 overflow-hidden">
+      {/* Левая панель со списком канвасов */}
+      <Sidebar />
+
+      {/* Основная область */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <Toolbar />
+
+        {!currentCanvasId ? (
+          // Если канвас не выбран - показываем заглушку
+          <div className="flex-1 flex items-center justify-center text-slate-400">
+            <div className="text-center">
+              <p className="text-lg mb-2">Выберите канвас из списка слева</p>
+              <p className="text-sm">или создайте новый</p>
+            </div>
+          </div>
+        ) : isGlobalCanvas ? (
+          // Глобальная библиотека (пока заглушка)
+          <div className="flex-1 flex items-center justify-center text-slate-400">
+            <div className="text-center">
+              <p className="text-lg mb-2">Глобальная библиотека</p>
+              <p className="text-sm">(в разработке)</p>
+            </div>
+          </div>
+        ) : (
+          // Редактор ReactFlow
+          <div className="flex-1 relative min-w-0">
             <ReactFlow
               nodes={nodes}
               edges={edges}
-              onNodesChange={actions.onNodesChange}
-              onEdgesChange={actions.onEdgesChange}
               onConnect={onConnect}
-              onDragOver={onDragOver}
               onDrop={onDrop}
-              fitView
-              className="bg-slate-950/50 w-full h-full"
+              onDragOver={onDragOver}
               nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              fitView
+              minZoom={0.2}
+              maxZoom={2}
+              className="bg-slate-950/50"
             >
               <Background
-                color="#334155"
+                color="#64748b"
                 gap={40}
+                className="opacity-10"
                 variant={BackgroundVariant.Dots}
-                className="opacity-20"
               />
               <Controls
                 position="top-right"
                 className="top-4 right-4 bg-slate-900 border border-slate-800 [&_button]:bg-slate-800 [&_button]:border-slate-700 [&_button]:text-slate-400 [&_button:hover]:bg-cyan-500/20 [&_button:hover]:text-cyan-400"
               />
-              <NodeAddPanel isCanvasListCollapsed={isCanvasListCollapsed} />
+              <NodeAddPanel isCanvasListCollapsed={false} />
             </ReactFlow>
           </div>
-        </div>
+        )}
+
+        <StatusBar />
       </div>
+
+      {/* Панель свойств (только для обычного режима) */}
+      {currentCanvasId && !isGlobalCanvas && <PropertiesPanel />}
     </div>
   );
 };

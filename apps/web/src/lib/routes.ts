@@ -14,7 +14,7 @@ export const ROUTES = {
   PRODUCT: "/product",
   RESOURCES: "/resources",
   SOLUTIONS: "/solutions",
-  CANVAS: "/workspace/:canvasId",
+  CANVAS: "/workspace/:projectId",
 } as const;
 
 export const getRoute = (route: keyof typeof ROUTES) => ROUTES[route];
