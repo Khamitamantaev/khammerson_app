@@ -109,20 +109,17 @@ export const CanvasEditorPage = () => {
   );
 
   return (
-    <div className="h-screen bg-gradient-to-b from-slate-950 to-slate-900">
-      {/* Основной контейнер с flex на всю высоту */}
+    <div className="h-screen w-full bg-gradient-to-b from-slate-950 to-slate-900">
       <div className="flex h-full pt-22">
-        {/* Левая панель со списком канвасов - фиксированная ширина */}
-        <div className="w-72 flex-shrink-0 h-full">
-          <CanvasList
-            isCollapsed={isCanvasListCollapsed}
-            onCollapse={setIsCanvasListCollapsed}
-          />
-        </div>
+        {/* Левая панель со списком канвасов */}
+        <CanvasList
+          isCollapsed={isCanvasListCollapsed}
+          onCollapse={setIsCanvasListCollapsed}
+        />
 
         {/* Правая часть с ReactFlow - занимает всё оставшееся место */}
         <div className="flex-1 h-full relative">
-          <div className="absolute inset-0" style={{ top: "72px" }}>
+          <div className="absolute inset-0">
             <ReactFlow
               nodes={nodes}
               edges={edges}

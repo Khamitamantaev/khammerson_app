@@ -98,7 +98,7 @@ export const CanvasList = ({ isCollapsed, onCollapse }: CanvasListProps) => {
       {/* Сама панель */}
       <motion.div
         initial={false}
-        animate={{ width: isCollapsed ? 80 : 320 }}
+        animate={{ width: isCollapsed ? 80 : 290 }}
         transition={{ type: "spring", stiffness: 400, damping: 35 }}
         className="h-full relative"
       >
