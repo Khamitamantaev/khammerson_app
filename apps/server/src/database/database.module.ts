@@ -22,7 +22,6 @@ export class DatabaseModule implements OnModuleInit {
   constructor(private readonly databaseService: DatabaseService) {}
 
   async onModuleInit() {
-    const isDev = process.env.NODE_ENV !== 'production';
     try {
       // Используем getPool() вместо прямого доступа к pool
       const pool = this.databaseService.getPool();
@@ -40,10 +39,13 @@ export class DatabaseModule implements OnModuleInit {
       if (!hasProjectsTable) {
         console.log('🔄 База данных не инициализирована. Создаю таблицы...');
 
-        // Читаем SQL файл
-        const sqlPath = isDev
-          ? path.join(process.cwd(), 'src/database/init.sql')
-          : path.join(__dirname, 'init.sql');
+        const sqlPath = path.join(__dirname, 'init.sql');
+        console.log('Looking for init.sql at:', sqlPath);
+
+        if (!fs.existsSync(sqlPath)) {
+          console.error('❌ Файл init.sql не найден по пути:', sqlPath);
+          return;
+        }
 
         if (!fs.existsSync(sqlPath)) {
           console.error('❌ Файл init.sql не найден по пути:', sqlPath);
