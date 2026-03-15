@@ -14,6 +14,7 @@ import {
 } from "@web/store/FlowStore";
 import { CanvasList } from "@web/components/canvas/CanvasList";
 import { NodeAddPanel } from "@web/components/panels/NodeAddPanel";
+import { nodeTypes } from "@web/components/node/nodeTypes";
 
 const createTestCanvas = () => ({
   id: `canvas-${Date.now()}`,
@@ -22,18 +23,24 @@ const createTestCanvas = () => ({
   nodes: [
     {
       id: "1",
-      type: "default",
-      data: { label: "Папка src" },
+      type: "folder", // вместо "default"
+      data: { label: "Папка src", nodeType: "folder" },
       position: { x: 250, y: 100 },
     },
     {
       id: "2",
-      data: { label: "Файл index.ts" },
+      type: "file", // вместо отсутствия type
+      data: {
+        label: "Файл index.ts",
+        nodeType: "file",
+        content: "// index.ts",
+      },
       position: { x: 100, y: 200 },
     },
     {
       id: "3",
-      data: { label: "Файл App.tsx" },
+      type: "file", // вместо отсутствия type
+      data: { label: "Файл App.tsx", nodeType: "file", content: "// App.tsx" },
       position: { x: 400, y: 200 },
     },
   ],
@@ -87,7 +94,7 @@ export const CanvasEditorPage = () => {
 
       const newNode = {
         id: `node-${Date.now()}`,
-        type: type === "folder" || type === "file" ? "default" : type,
+        type: type, // Убираем условие, используем переданный тип напрямую
         data: {
           label: `Новая ${type}`,
           nodeType: type,
@@ -126,6 +133,7 @@ export const CanvasEditorPage = () => {
               onDrop={onDrop}
               fitView
               className="bg-slate-950/50 w-full h-full"
+              nodeTypes={nodeTypes}
             >
               <Background
                 color="#334155"

@@ -30,13 +30,15 @@ export const CanvasCard = ({
       exit={{ opacity: 0, x: -10 }}
       className="relative group"
     >
+      {/* Основная кнопка выбора канваса */}
       <button
         onClick={onSelect}
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200",
-          "hover:bg-slate-800/50 group",
+          "hover:bg-slate-800/50",
           isSelected &&
             "bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30",
+          "active:bg-slate-800/70 focus:outline-none active:outline-none ring-0 active:ring-0",
         )}
       >
         {/* Иконка с градиентом */}
@@ -51,7 +53,7 @@ export const CanvasCard = ({
           <Folder className="h-4 w-4" />
         </div>
 
-        {/* Информация о проекте */}
+        {/* Информация о канвасе */}
         <div className="flex-1 text-left">
           <div
             className={cn(
@@ -76,23 +78,20 @@ export const CanvasCard = ({
         )}
       </button>
 
-      {/* Кнопки действий (появляются при наведении) */}
-      <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200">
+      {/* Кнопки действий - теперь отдельно, не внутри button */}
+      <div
+        className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-200"
+        onClick={(e) => e.stopPropagation()} // Останавливаем всплытие
+      >
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit();
-          }}
-          className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 transition-all border border-slate-700 hover:border-cyan-500/30"
+          onClick={onEdit}
+          className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 transition-all border border-slate-700 hover:border-cyan-500/30 focus:outline-none active:outline-none ring-0 active:ring-0"
         >
           <Pencil className="h-3 w-3" />
         </button>
         <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all border border-slate-700 hover:border-red-500/30"
+          onClick={onDelete}
+          className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-red-500/20 text-slate-400 hover:text-red-400 transition-all border border-slate-700 hover:border-red-500/30 focus:outline-none active:outline-none ring-0 active:ring-0"
         >
           <Trash2 className="h-3 w-3" />
         </button>
