@@ -36,34 +36,42 @@ export class ProjectRepository {
   }
 
   async findUserProjects(userId: string): Promise<ProjectWithStats[]> {
-    const query = `
-      SELECT 
-        p.*,
-        COALESCE(canvases_count, 0) as canvases_count,
-        COALESCE(stars_count, 0) as stars_count,
-        COALESCE(downloads_count, 0) as downloads_count
-      FROM projects p
-      LEFT JOIN (
-        SELECT project_id, COUNT(*) as canvases_count 
-        FROM canvases 
-        GROUP BY project_id
-      ) c ON p.id = c.project_id
-      LEFT JOIN (
-        SELECT project_id, COUNT(*) as stars_count 
-        FROM stars 
-        GROUP BY project_id
-      ) s ON p.id = s.project_id
-      LEFT JOIN (
-        SELECT project_id, COUNT(*) as downloads_count 
-        FROM downloads 
-        GROUP BY project_id
-      ) d ON p.id = d.project_id
-      WHERE p.owner_id = $1
-      ORDER BY p.created_at DESC
-    `;
+    console.log('Executing query for user:', userId); // Добавьте лог
 
-    const result = await this.pool.query(query, [userId]);
-    return result.rows.map(this.mapRowToProjectWithStats);
+    const query = `
+    SELECT 
+      p.*,
+      COALESCE(canvases_count, 0) as canvases_count,
+      COALESCE(stars_count, 0) as stars_count,
+      COALESCE(downloads_count, 0) as downloads_count
+    FROM projects p
+    LEFT JOIN (
+      SELECT project_id, COUNT(*) as canvases_count 
+      FROM canvases 
+      GROUP BY project_id
+    ) c ON p.id = c.project_id
+    LEFT JOIN (
+      SELECT project_id, COUNT(*) as stars_count 
+      FROM stars 
+      GROUP BY project_id
+    ) s ON p.id = s.project_id
+    LEFT JOIN (
+      SELECT project_id, COUNT(*) as downloads_count 
+      FROM downloads 
+      GROUP BY project_id
+    ) d ON p.id = d.project_id
+    WHERE p.owner_id = $1
+    ORDER BY p.created_at DESC
+  `;
+
+    try {
+      const result = await this.pool.query(query, [userId]);
+      console.log('Query result:', result.rows); // Добавьте лог
+      return result.rows.map(this.mapRowToProjectWithStats);
+    } catch (error) {
+      console.error('Error in findUserProjects:', error);
+      throw error;
+    }
   }
 
   async findPublicProjects(filters?: {
@@ -338,7 +346,7 @@ export class ProjectRepository {
     );
   }
 
-  private mapRowToProject(row: any): Project {
+  private mapRowToProject = (row: any): Project => {
     return {
       id: row.id,
       title: row.title,
@@ -351,9 +359,9 @@ export class ProjectRepository {
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
-  }
+  };
 
-  private mapRowToProjectWithStats(row: any): ProjectWithStats {
+  private mapRowToProjectWithStats = (row: any): ProjectWithStats => {
     return {
       ...this.mapRowToProject(row),
       _count: {
@@ -364,5 +372,5 @@ export class ProjectRepository {
       ownerName: row.owner_name,
       ownerEmail: row.owner_email,
     };
-  }
+  };
 }

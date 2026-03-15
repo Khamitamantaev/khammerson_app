@@ -19,6 +19,7 @@ export class ProjectRouter {
           try {
             return await this.projectService.getUserProjects(ctx.user.id);
           } catch (error) {
+            console.error('Error in getUserProjects:', error);
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
               message: (error as Error).message,

@@ -49,11 +49,11 @@ export class AuthService {
     });
 
     return {
-      access_token: token, // пока оставим для обратной совместимости
+      access_token: token,
       user: {
         id: user.id,
         email: user.email,
-        name: user.userName || user.name,
+        name: user.userName || 'Пользователь', // Используем правильное поле
       },
     };
   }

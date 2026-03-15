@@ -6,7 +6,7 @@ export interface User {
   id: string;
   email: string;
   userName: string;
-  name?: string;
+  firstName?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +24,7 @@ export class UserService {
       id: row.id,
       email: row.email,
       userName: row.user_name,
-      name: row.name,
+      firstName: row.first_name,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };
@@ -48,7 +48,7 @@ export class UserService {
     email: string,
   ): Promise<UserWithPassword | null> {
     const result = await this.pool.query(
-      'SELECT id, email, user_name, password, name, created_at, updated_at FROM "users" WHERE email = $1',
+      'SELECT id, email, user_name, password, first_name, created_at, updated_at FROM "users" WHERE email = $1',
       [email],
     );
 
@@ -62,7 +62,7 @@ export class UserService {
       email: row.email,
       userName: row.user_name,
       password: row.password,
-      name: row.name,
+      firstName: row.first_name,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     };

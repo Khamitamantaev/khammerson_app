@@ -11,59 +11,46 @@ import {
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { CreateProjectModal } from "@web/modals/CreateProjectModal";
+import { trpc } from "@web/trpc/client";
 
 export const WorkspacePage = () => {
   const [activeView, setActiveView] = useState<"grid" | "list">("grid");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [projects, setProjects] = useState([
-    {
-      id: 1,
-      name: "Маркетплейс API",
-      updated: "2 дня назад",
-      nodes: 24,
-      stars: 12,
+
+  // Получаем реальные проекты с сервера
+  const { data: projects = [], refetch } =
+    trpc.project.getUserProjects.useQuery();
+
+  // Мутации
+  const createProject = trpc.project.create.useMutation({
+    onSuccess: () => {
+      refetch();
     },
-    {
-      id: 2,
-      name: "Блог на Next.js",
-      updated: "5 дней назад",
-      nodes: 18,
-      stars: 8,
-    },
-    {
-      id: 3,
-      name: "Telegram бот",
-      updated: "1 неделя назад",
-      nodes: 32,
-      stars: 15,
-    },
-    {
-      id: 4,
-      name: "Dashboard UI",
-      updated: "2 недели назад",
-      nodes: 45,
-      stars: 23,
-    },
-  ]);
+  });
 
   const handleCreateProject = (newProject: {
     name: string;
     description: string;
     template?: string;
   }) => {
-    const project = {
-      id: projects.length + 1,
-      name: newProject.name,
-      updated: "Только что",
-      nodes: 0,
-      stars: 0,
-    };
-
-    setProjects([...projects, project]);
+    createProject.mutate({
+      title: newProject.name,
+      description: newProject.description,
+      isPublic: false,
+      tags: newProject.template ? [newProject.template] : [],
+    });
   };
 
+  // Статистика
+  const totalProjects = projects.length;
+  const totalCanvases = projects.reduce(
+    (acc, p) => acc + (p._count?.canvases || 0),
+    0,
+  );
+  const totalStars = projects.reduce((acc, p) => acc + (p.stars || 0), 0);
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pt-20">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pt-20">
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Заголовок с эффектом */}
         <motion.div
@@ -72,7 +59,7 @@ export const WorkspacePage = () => {
           className="mb-12 text-center md:text-left"
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-3">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300">
+            <span className="bg-clip-text text-transparent bg-linear-to-r from-indigo-300 via-white/90 to-rose-300">
               Рабочее пространство
             </span>
           </h1>
@@ -125,7 +112,7 @@ export const WorkspacePage = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-rose-500 hover:from-indigo-600 hover:to-rose-600 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/25"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-indigo-500 to-rose-500 hover:from-indigo-600 hover:to-rose-600 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/25"
             >
               <Plus className="h-4 w-4" />
               Новый проект
@@ -184,10 +171,10 @@ export const WorkspacePage = () => {
                     to={`/workspace/${project.id}`}
                     className="group block relative"
                   >
-                    <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-rose-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+                    <div className="absolute -inset-0.5 bg-linear-to-r from-indigo-500 to-rose-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
                     <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-xl border border-white/10 p-5 hover:border-white/20 transition-all">
                       <div className="flex items-start justify-between mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
                           <Folder className="h-5 w-5 text-indigo-400" />
                         </div>
                         <button className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -196,20 +183,21 @@ export const WorkspacePage = () => {
                       </div>
 
                       <h3 className="font-semibold text-white mb-1 group-hover:text-indigo-400 transition-colors">
-                        {project.name}
+                        {project.title}
                       </h3>
 
                       <p className="text-xs text-slate-500 mb-4">
-                        Обновлен {project.updated}
+                        Обновлен{" "}
+                        {new Date(project.updatedAt).toLocaleDateString()}
                       </p>
 
                       <div className="flex items-center justify-between text-xs">
                         <span className="text-slate-400">
-                          {project.nodes} нод
+                          {project._count?.canvases || 0} канвасов
                         </span>
                         <span className="flex items-center gap-1 text-slate-400">
                           <Star className="h-3 w-3" />
-                          {project.stars}
+                          {project.stars || 0}
                         </span>
                       </div>
                     </div>
@@ -221,25 +209,26 @@ export const WorkspacePage = () => {
                     className="group flex items-center justify-between p-4 bg-slate-900/50 backdrop-blur-sm rounded-lg border border-white/5 hover:border-white/20 transition-all"
                   >
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
                         <Layout className="h-4 w-4 text-indigo-400" />
                       </div>
                       <div>
                         <h3 className="font-semibold text-white group-hover:text-indigo-400 transition-colors">
-                          {project.name}
+                          {project.title}
                         </h3>
                         <p className="text-xs text-slate-500">
-                          {project.nodes} нод • Обновлен {project.updated}
+                          {project._count?.canvases || 0} канвасов • Обновлен{" "}
+                          {new Date(project.updatedAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="flex items-center gap-1 text-sm text-slate-400">
                         <Star className="h-3 w-3" />
-                        {project.stars}
+                        {project.stars || 0}
                       </span>
                       <button className="p-2 text-slate-400 hover:text-indigo-400 transition-colors">
-                        <Settings className="h-4 w-4" />
+                        <Star className="h-4 w-4" />
                       </button>
                     </div>
                   </Link>
@@ -256,7 +245,7 @@ export const WorkspacePage = () => {
               >
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="group w-full h-full min-h-[180px] bg-white/5 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/30 transition-all"
+                  className="group w-full h-full min-h-45 bg-white/5 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/30 transition-all"
                 >
                   <div className="h-full flex flex-col items-center justify-center p-6">
                     <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mb-3 group-hover:bg-indigo-500/20 transition-colors">
@@ -278,10 +267,10 @@ export const WorkspacePage = () => {
           className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
-            { label: "Всего проектов", value: "12" },
-            { label: "Всего нод", value: "119" },
-            { label: "Звёзд получено", value: "58" },
-            { label: "Шаблонов", value: "4" },
+            { label: "Всего проектов", value: totalProjects.toString() },
+            { label: "Всего канвасов", value: totalCanvases.toString() },
+            { label: "Звёзд получено", value: totalStars.toString() },
+            { label: "Шаблонов", value: "0" },
           ].map((stat, i) => (
             <div
               key={i}

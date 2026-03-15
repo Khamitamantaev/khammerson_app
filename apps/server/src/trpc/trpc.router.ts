@@ -9,6 +9,8 @@ import { expressHandler } from 'trpc-playground/handlers/express';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Request, Response } from 'express';
+import { ProjectRouter } from './routers/project.router';
+import { CanvasRouter } from './routers/canvas.router';
 
 @Injectable()
 export class TrpcRouter {
@@ -19,12 +21,16 @@ export class TrpcRouter {
     private readonly usersRouter: UsersRouter,
     private readonly authRouter: AuthRouter,
     private readonly configService: ConfigService,
+    private readonly projectRouter: ProjectRouter,
+    private readonly canvasRouter: CanvasRouter,
   ) {}
 
   get appRouter() {
     return this.trpcService.router({
       users: this.usersRouter.router,
       auth: this.authRouter.router,
+      project: this.projectRouter.router,
+      canvas: this.canvasRouter.router,
     });
   }
 

@@ -8,11 +8,17 @@ import { AuthModule } from '../auth/auth.module';
 import { DatabaseModule } from '../database/database.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ProjectModule } from '../project/project.module';
+import { ProjectRouter } from './routers/project.router';
+import { CanvasRouter } from './routers/canvas.router';
+import { CanvasModule } from '../canvas/canvas.module';
 
 @Module({
   imports: [
     DatabaseModule,
     AuthModule,
+    ProjectModule,
+    CanvasModule,
     JwtModule.registerAsync({
       // 👈 добавляем JwtModule
       imports: [ConfigModule],
@@ -23,6 +29,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       inject: [ConfigService],
     }),
   ],
-  providers: [TrpcService, TrpcRouter, UsersRouter, AuthRouter, UserService],
+  providers: [
+    TrpcService,
+    TrpcRouter,
+    UsersRouter,
+    AuthRouter,
+    UserService,
+    ProjectRouter,
+    CanvasRouter,
+  ],
 })
 export class TrpcModule {}
