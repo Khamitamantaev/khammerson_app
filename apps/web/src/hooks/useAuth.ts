@@ -73,8 +73,6 @@ export function useAuth() {
       // 👇 Добавляем refetch после регистрации
       await refetchUser();
       queryClient.invalidateQueries();
-
-      console.log("✅ Регистрация успешна, редирект на /welcome");
       navigate("/welcome");
 
       return result;

@@ -19,9 +19,7 @@ export class ProjectService {
   ) {}
 
   async getUserProjects(userId: string) {
-    console.log('Getting projects for user:', userId); // Добавьте лог
     const projects = await this.projectRepository.findUserProjects(userId);
-    console.log('Found projects:', projects); // Добавьте лог
     return projects;
   }
 

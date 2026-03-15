@@ -5,10 +5,6 @@ import { useAuth } from "../hooks/useAuth";
 
 export const WelcomePage = () => {
   const { user } = useAuth();
-
-  console.log("WelcomePage user:", user);
-  console.log("isAuthenticated:", !!user);
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 to-slate-900 flex items-center justify-center p-4">
       <motion.div

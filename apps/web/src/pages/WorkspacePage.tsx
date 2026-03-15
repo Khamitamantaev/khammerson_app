@@ -7,22 +7,44 @@ import {
   Settings,
   Folder,
   Star,
+  Pencil,
+  Trash2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { CreateProjectModal } from "@web/modals/CreateProjectModal";
 import { trpc } from "@web/trpc/client";
+import { EditProjectModal } from "@web/modals/EditProjectModal";
+import { DeleteProjectModal } from "@web/modals/DeleteProjectModal";
 
 export const WorkspacePage = () => {
   const [activeView, setActiveView] = useState<"grid" | "list">("grid");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<any>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingProject, setDeletingProject] = useState<any>(null);
   // Получаем реальные проекты с сервера
   const { data: projects = [], refetch } =
     trpc.project.getUserProjects.useQuery();
 
   // Мутации
   const createProject = trpc.project.create.useMutation({
+    onSuccess: () => {
+      refetch();
+      setIsCreateModalOpen(false);
+    },
+  });
+
+  const updateProject = trpc.project.update.useMutation({
+    onSuccess: () => {
+      refetch();
+      setIsEditModalOpen(false);
+      setEditingProject(null);
+    },
+  });
+
+  const deleteProject = trpc.project.delete.useMutation({
     onSuccess: () => {
       refetch();
     },
@@ -39,6 +61,38 @@ export const WorkspacePage = () => {
       isPublic: false,
       tags: newProject.template ? [newProject.template] : [],
     });
+  };
+
+  const handleEditProject = (project: any) => {
+    setEditingProject(project);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateProject = (data: { name: string; description: string }) => {
+    if (!editingProject) return;
+
+    updateProject.mutate({
+      id: editingProject.id,
+      title: data.name,
+      description: data.description,
+    });
+  };
+
+  // Новый обработчик для открытия модалки
+  const handleDeleteClick = (project: any, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDeletingProject(project);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Новый обработчик подтверждения удаления
+  const handleConfirmDelete = () => {
+    if (deletingProject) {
+      deleteProject.mutate({ id: deletingProject.id });
+      setIsDeleteModalOpen(false);
+      setDeletingProject(null);
+    }
   };
 
   // Статистика
@@ -111,7 +165,7 @@ export const WorkspacePage = () => {
 
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => setIsCreateModalOpen(true)}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-linear-to-r from-indigo-500 to-rose-500 hover:from-indigo-600 hover:to-rose-600 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/25"
             >
               <Plus className="h-4 w-4" />
@@ -167,71 +221,98 @@ export const WorkspacePage = () => {
               >
                 {activeView === "grid" ? (
                   // Карточка в стиле стекла
-                  <Link
-                    to={`/workspace/${project.id}`}
-                    className="group block relative"
-                  >
-                    <div className="absolute -inset-0.5 bg-linear-to-r from-indigo-500 to-rose-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
-                    <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-xl border border-white/10 p-5 hover:border-white/20 transition-all">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
-                          <Folder className="h-5 w-5 text-indigo-400" />
+                  <div className="group block relative">
+                    <Link to={`/workspace/${project.id}`} className="block">
+                      <div className="absolute -inset-0.5 bg-linear-to-r from-indigo-500 to-rose-500 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity blur" />
+                      <div className="relative bg-slate-900/90 backdrop-blur-xl rounded-xl border border-white/10 p-5 hover:border-white/20 transition-all">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
+                            <Folder className="h-5 w-5 text-indigo-400" />
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleEditProject(project);
+                              }}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-indigo-400"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteClick(project, e)}
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:text-rose-400"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </div>
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Star className="h-4 w-4 text-slate-400 hover:text-yellow-400" />
-                        </button>
-                      </div>
 
-                      <h3 className="font-semibold text-white mb-1 group-hover:text-indigo-400 transition-colors">
-                        {project.title}
-                      </h3>
-
-                      <p className="text-xs text-slate-500 mb-4">
-                        Обновлен{" "}
-                        {new Date(project.updatedAt).toLocaleDateString()}
-                      </p>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-400">
-                          {project._count?.canvases || 0} канвасов
-                        </span>
-                        <span className="flex items-center gap-1 text-slate-400">
-                          <Star className="h-3 w-3" />
-                          {project.stars || 0}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                ) : (
-                  // Строка для list вида
-                  <Link
-                    to={`/workspace/${project.id}`}
-                    className="group flex items-center justify-between p-4 bg-slate-900/50 backdrop-blur-sm rounded-lg border border-white/5 hover:border-white/20 transition-all"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
-                        <Layout className="h-4 w-4 text-indigo-400" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-white group-hover:text-indigo-400 transition-colors">
+                        <h3 className="font-semibold text-white mb-1 group-hover:text-indigo-400 transition-colors">
                           {project.title}
                         </h3>
-                        <p className="text-xs text-slate-500">
-                          {project._count?.canvases || 0} канвасов • Обновлен{" "}
+
+                        <p className="text-xs text-slate-500 mb-4">
+                          Обновлен{" "}
                           {new Date(project.updatedAt).toLocaleDateString()}
                         </p>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-slate-400">
+                            {project._count?.canvases || 0} канвасов
+                          </span>
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <Star className="h-3 w-3" />
+                            {project.stars || 0}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="flex items-center gap-1 text-sm text-slate-400">
-                        <Star className="h-3 w-3" />
-                        {project.stars || 0}
-                      </span>
-                      <button className="p-2 text-slate-400 hover:text-indigo-400 transition-colors">
-                        <Star className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </Link>
+                    </Link>
+                  </div>
+                ) : (
+                  // Строка для list вида
+                  <div className="group relative">
+                    <Link to={`/workspace/${project.id}`} className="block">
+                      <div className="flex items-center justify-between p-4 bg-slate-900/50 backdrop-blur-sm rounded-lg border border-white/5 hover:border-white/20 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-linear-to-br from-indigo-500/20 to-rose-500/20 flex items-center justify-center">
+                            <Layout className="h-4 w-4 text-indigo-400" />
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-white group-hover:text-indigo-400 transition-colors">
+                              {project.title}
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                              {project._count?.canvases || 0} канвасов •
+                              Обновлен{" "}
+                              {new Date(project.updatedAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="flex items-center gap-1 text-sm text-slate-400">
+                            <Star className="h-3 w-3" />
+                            {project.stars || 0}
+                          </span>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleEditProject(project);
+                            }}
+                            className="p-1.5 text-slate-400 hover:text-indigo-400 transition-colors"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteClick(project, e)}
+                            className="p-1.5 text-slate-400 hover:text-rose-400 transition-colors"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
                 )}
               </motion.div>
             ))}
@@ -244,7 +325,7 @@ export const WorkspacePage = () => {
                 transition={{ delay: projects.length * 0.05 }}
               >
                 <button
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={() => setIsCreateModalOpen(true)}
                   className="group w-full h-full min-h-45 bg-white/5 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/30 transition-all"
                 >
                   <div className="h-full flex flex-col items-center justify-center p-6">
@@ -282,10 +363,32 @@ export const WorkspacePage = () => {
           ))}
         </motion.div>
 
+        {/* Модальные окна */}
         <CreateProjectModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
           onCreate={handleCreateProject}
+        />
+
+        <EditProjectModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingProject(null);
+          }}
+          project={editingProject}
+          onUpdate={handleUpdateProject}
+        />
+
+        <DeleteProjectModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => {
+            setIsDeleteModalOpen(false);
+            setDeletingProject(null);
+          }}
+          onConfirm={handleConfirmDelete}
+          projectTitle={deletingProject?.title}
+          isLoading={deleteProject.isPending}
         />
       </div>
     </div>

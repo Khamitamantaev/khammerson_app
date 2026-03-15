@@ -36,8 +36,6 @@ export class ProjectRepository {
   }
 
   async findUserProjects(userId: string): Promise<ProjectWithStats[]> {
-    console.log('Executing query for user:', userId); // Добавьте лог
-
     const query = `
     SELECT 
       p.*,
@@ -66,7 +64,6 @@ export class ProjectRepository {
 
     try {
       const result = await this.pool.query(query, [userId]);
-      console.log('Query result:', result.rows); // Добавьте лог
       return result.rows.map(this.mapRowToProjectWithStats);
     } catch (error) {
       console.error('Error in findUserProjects:', error);
