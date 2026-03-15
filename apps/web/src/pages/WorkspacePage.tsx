@@ -10,11 +10,12 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { CreateProjectModal } from "@web/modals/CreateProjectModal";
 
 export const WorkspacePage = () => {
   const [activeView, setActiveView] = useState<"grid" | "list">("grid");
-
-  const projects = [
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [projects, setProjects] = useState([
     {
       id: 1,
       name: "Маркетплейс API",
@@ -43,7 +44,23 @@ export const WorkspacePage = () => {
       nodes: 45,
       stars: 23,
     },
-  ];
+  ]);
+
+  const handleCreateProject = (newProject: {
+    name: string;
+    description: string;
+    template?: string;
+  }) => {
+    const project = {
+      id: projects.length + 1,
+      name: newProject.name,
+      updated: "Только что",
+      nodes: 0,
+      stars: 0,
+    };
+
+    setProjects([...projects, project]);
+  };
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black pt-20">
@@ -106,7 +123,10 @@ export const WorkspacePage = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-rose-500 hover:from-indigo-600 hover:to-rose-600 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/25">
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-indigo-500 to-rose-500 hover:from-indigo-600 hover:to-rose-600 text-white rounded-lg transition-all shadow-lg shadow-indigo-500/25"
+            >
               <Plus className="h-4 w-4" />
               Новый проект
             </button>
@@ -234,7 +254,10 @@ export const WorkspacePage = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: projects.length * 0.05 }}
               >
-                <button className="group w-full h-full min-h-[180px] bg-white/5 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/30 transition-all">
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="group w-full h-full min-h-[180px] bg-white/5 backdrop-blur-sm rounded-xl border-2 border-dashed border-white/10 hover:border-indigo-500/30 transition-all"
+                >
                   <div className="h-full flex flex-col items-center justify-center p-6">
                     <div className="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center mb-3 group-hover:bg-indigo-500/20 transition-colors">
                       <Plus className="h-6 w-6 text-indigo-400" />
@@ -269,6 +292,12 @@ export const WorkspacePage = () => {
             </div>
           ))}
         </motion.div>
+
+        <CreateProjectModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onCreate={handleCreateProject}
+        />
       </div>
     </div>
   );
