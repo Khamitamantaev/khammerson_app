@@ -78,7 +78,6 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       const client = await this.pool.connect(); // ✅ pool уже существует
       const result = await client.query('SELECT NOW() as now');
       client.release();
-
       this.logger.log(
         `✅ Database connected successfully. Server time: ${result.rows[0].now}`,
       );
@@ -112,13 +111,13 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     try {
       const result = await this.pool.query(text, params);
       const duration = Date.now() - start;
-      this.logger.debug(`Query executed in ${duration}ms: ${text}`);
+      this.logger.debug(`Query executed ins ${duration}ms: ${text}`);
       return result;
     } catch (error) {
       if (error instanceof Error) {
         this.logger.error(`Query failed: ${error.message}`);
       } else {
-        this.logger.error(`Query failed with unknown error: ${String(error)}`);
+        this.logger.error(`Query failed withw unknown error: ${String(error)}`);
       }
       throw error;
     }
