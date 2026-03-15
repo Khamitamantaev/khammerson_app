@@ -53,10 +53,8 @@ export const Sidebar = () => {
         onClose={() => {
           actions.setCreateModalOpen(false);
           actions.setEditingCanvasId(null);
-          actions.setCanvasTitle("");
-          actions.setCanvasDescription("");
         }}
-        onSubmit={handleSubmit}
+        onSubmit={(data) => handleSubmit(data.title, data.description)} // Передаем данные напрямую
         initialData={
           editingCanvasId
             ? {

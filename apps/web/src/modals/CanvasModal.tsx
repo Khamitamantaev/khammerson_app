@@ -42,7 +42,6 @@ export const CanvasModal = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!localTitle.trim()) return;
     onSubmit({
       title: localTitle.trim(),
       description: localDescription.trim(),
